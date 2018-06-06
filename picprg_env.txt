@@ -1,0 +1,782 @@
+                         PICPRG.ENV File Format
+                              30 May 2018
+
+This document describes the format of the PICPRG.ENV file, which contains
+static information for the PICPRG library.  This file is an Embed Inc
+environment file.  The official copy of this file is kept in the ENV
+directory within the software installation directory.  The Embed Inc
+portable pathname of the file is therefore "(cog)env/picprg.env".
+
+The file is a text file intended for modification with an ordinary text
+editor.
+
+The file may only contain ordinary printable ASCII characters, space, and
+endline sequences.  Each line, including the last, must end with an
+endline sequence.  An endline sequence must be either a single line feed
+character (10) or a carriage return line feed pair (13, 10).  No other
+control characters are allowed.
+
+The "/*" sequence begins an end of line comment.  In other words,
+everything from the first unquoted "/*" to the end of a line is ignored.
+The rest of this document describes the file format without comments.
+Blank lines are also ignored.  A blank line is a line containing only 0 or
+more spaces, possibly followed by an end of line comment.
+
+Each line (except for comment and blank lines as mentioned above) contains
+one or more tokens.  A token is a contiguous sequence of non-space
+characters, or a sequence of characters enclosed in quotes ("") or
+apostrophies ('').  The value of quoted tokens is the value between but
+not including the quotes.  Tokens are separated from each other by one or
+more spaces.  There may be any number of spaces before the first token and
+after the last.
+
+The first token on a line is the command name.  The meaning of tokens
+following the command name depends on the command.  Except as noted, each
+command sets some information state within the PICPRG library when it is
+processed.  Commands are processed in order from the start to the end of
+the file.  Later commands therefore override settings from earlier
+commands.
+
+All tokens are case-insensitive to the extent possible.  Most tokens are
+case-insensitive except those that reference external system objects on
+systems where object names are case-sensitive.  Since commands are PICPRG
+internal keywords, they are all case-insensitive.
+
+
+Examples
+
+  Very few examples are included in this document.  The PICPRG.ENV file in
+  the standard software release is intended to serve as an example.
+
+
+Commands
+
+  ORG id name webpage
+
+    Defines one organization ID.  ID is the 1 - 254 organization ID.  NAME
+    is the text name of the organization, and webpage is the URL of the
+    mandatory web page unique to the organization pertaining to this
+    product.  Since WEBPAGE always refers to a web page, the leading
+    "http://" is not included in WEBPAGE.
+
+  ID namespace binid
+  ID namespace NONE
+
+    Starts a block of commands that pertain to a particular hard coded PIC
+    chip ID.  NAMESPACE indicates the name space in which the chip ID is
+    valid.  Chip IDs are only unique within a name space.  They can and
+    are re-used between name spaces.  The valid values for NAMESPACE are:
+
+      12
+
+        PIC12 family using the "baseline" 12 bit core.  This inludes PIC10
+        parts since they also use the 12 bit core, but excludes some "12F"
+        parts like the 12F629 that use the 14 bit core.
+
+      16
+
+        PIC16 family using the "midrange" 14 bit core.  Note that this
+        includes parts that use the 14 bit core even if they are otherwise
+        named, such as the 12F629 and 12F675.
+
+      16B
+
+        PIC16 using 8 bit programming opcodes, like the 16F15313.
+
+      18
+
+        PIC18 family.  These have a 16 bit ID word.
+
+      30
+
+        dsPIC family.  These have a 32 bit ID word.
+
+    BINID expresses a binary bit pattern.  Each character in BINID must be
+    either "0", "1", or "X".  The block matches a particular chip ID if
+    all the 1 and 0 bits match exactly.  The X bits can be either 1 or 0,
+    and are used to indicate "don't care".  All bits not specifically
+    indicated in BINID are assumed to be "don't care".  For example, the
+    BINIDs 1101xx and xx1101xx are equivalent.
+
+    The special BINID of "NONE" indicates this PIC does not contain a hard
+    coded ID word.  Of the flash PICs, this seems to be the case for the
+    12 bit core parts, and a few of the early 14 bit core parts.
+
+    When looking up information for a specific chip ID, the library scans
+    the ID blocks in the order they appear in the file.  The first ID
+    block that matches is used.  ID blocks therefore should be ordered
+    from most to least specific.
+
+    Each ID block must end with a ENDID command.  The remaining commands
+    in this list are intended for use within ID blocks.
+
+  REV mask shift
+
+    Describes how to find the chip revision number within the ID word.
+    MASK is a bit mask for the revision bits, and SHIFT is the number of
+    bits to shift right after the mask is applied. Specifically, the
+    following operation is used to derive the chip revision number:
+
+      revision = RShift(AND(id, mask), shift)
+
+    where RShift returns the logical right shift of the first argument by
+    the number of bits specified by the second argument.  The default is
+    REV 2#11111 0
+
+  NAMES name ... name
+
+    Indicates the list of valid chip type names.  Example chip type names
+    are "16F628", "16LF628", and "18F452".  At least one name must be
+    supplied.  This mandatory first name should be the generic chip name
+    for the particular chip ID.  For example, it should be "16F628"
+    instead of "16LF628" since both these have the same chip ID.  There
+    may only be one NAMES command per ID block.
+
+  VDD low normal high name ... name
+
+    Specifies the Vdd (power supply) levels for this particular chip.  The
+    LOW, NORMAL, and HIGH tokens are required, and are numbers in units of
+    volts.  NORMAL is the voltage at which normal operations, like erase
+    and programming take place.  LOW and HIGH are the voltages at which
+    additional verify operations should be performed.  If LOW and HIGH are
+    the same, then only a single verify pass is performed at that Vdd
+    level.
+
+    There may be any number of NAME tokens following the first three
+    tokens.  If one or more NAME tokens are provided, then the VDD command
+    only applies to those names.  All names must have been previously
+    declared with a NAMES command.  If no NAME tokens are supplied, then
+    the VDD command applies to all names.
+
+    The default is VDD 4.5 5.0 5.5.
+
+  VPP min max
+
+    Indicates the range of allowable Vpp values in volts for this device.
+    The default is 12.5 to 13.5.
+
+  TYPE family
+
+    Indicates the chip family type.  This is used to determine what
+    algorithms to use to erase, program, read, and perform other
+    operations on the chip.  The supported FAMILY names are:
+
+      10F  -  PIC 10Fxxx.
+
+        Reset: 18f
+
+          Vdd before Vpp
+
+        Read: core12
+
+        Erase: 10
+
+        Write: core12
+
+          LOAD DATA (2)
+          READ DATA (4)
+          INCREMENT ADDRESS (6)
+          BEGIN PROGRAMMING (8)
+          END PROGRAMMING (14)
+
+      12F6xx  -  PIC 12F629, 12F675.
+
+        Reset: 62x
+
+          Vpp before Vdd
+
+        Read: 16f
+
+        Erase: 12f6xx
+
+        Write: 12f6
+
+          BEGIN PROGRAM ONLY CYCLE (24)
+
+      16F  -  Generic 16F, such as 16F877.
+
+        Reset: 18f
+
+          Vdd before Vpp
+
+        Read: 16f
+
+        Erase: 16f
+
+        Write: 16f
+
+          BEGIN PROGRAMMING (8)
+
+      16F84  -  16F83, 16F84
+
+        Reset: 18f
+
+          Vdd before Vpp
+
+        Read: 16f
+
+        Erase: 16f84
+
+        Write: 16f
+
+          BEGIN ERASE PROGRAMMING CYCLE (8)
+
+      16F77  -  PIC 16F77 and related parts (16F7x).
+
+        Reset: 18f
+
+          Vdd before Vpp
+
+        Read: 16f
+
+        Erase: 16f7x
+
+        Write: 16f77
+
+          BEGIN PROGRAMMING (8)
+          END PROGRAMMING (14)
+
+      16F88   -  PIC 16F87/88.
+
+        Reset: vddvppf
+
+          Vdd then Vpp as quickly as possible
+
+        Read: 16f
+
+        Erase: 16f87xa
+
+        Write: 16f88
+
+          BEGIN PROGRAMMING (8)
+          END PROGRAMMING (23)
+
+      16F61x  -  PIC 12F60x, 12F61x, 16F61x
+
+        Reset: 62x
+
+          Vpp before Vdd
+
+        Read: 16f
+
+        Erase: 16f61x
+
+          Uses BULK ERASE (9) with PC at 2000h, waits 10mS.  This erases
+          all of program memory, user ID locations, and config word but
+          not calibration word at 2008h.
+
+        Write: 16f88x
+
+          BEGIN PROGRAMMING, externally timed (24)
+          END PROGRAMMING (10)
+
+      16F62x  -  All PIC 16F62x parts.
+
+        Reset: 62x
+
+          Vpp before Vdd
+
+        Read: 16f
+
+        Erase: 16f
+
+        Write: 16f
+
+          BEGIN PROGRAMMING (8)
+
+      16F62xA -  PIC 16F62xA and related parts, like 16F648A.
+
+        Reset: 62x
+
+          Vpp before Vdd
+
+        Read: 16f
+
+        Erase: 16f62xa
+
+        Write: 12f6
+
+          BEGIN PROGRAM ONLY CYCLE (24)
+
+      16F688  -  PIC 16F688 and related parts.  This includes several
+        16F6xx and 12F6xx.
+
+        Reset: 62x
+
+          Vpp before Vdd
+
+        Read: 16f
+
+        Erase: 16f688
+
+        Write: 16f688
+
+          BEGIN PROGRAMMING INTERNALLY TIMED (24)
+
+      16F7x7  -  PIC 16F737, 16F747, 16F767, 16F777
+
+        Reset: 18f
+
+          Vdd before Vpp
+
+        Read: 16f
+
+        Erase: 16f7x7
+
+          BULK ERASE PROGRAM MEMORY (9), 30mS wait
+
+        Write: 16f716
+
+          BEGIN PROGRAMMING (8)
+          END PROGRAMMING (14)
+
+      16F716  -  PIC 16F716.
+
+        Reset: 18f
+
+          Vdd before Vpp
+
+        Read: 16f
+
+        Erase: 16f62xa
+
+        Write: 16f716
+
+          BEGIN PROGRAMMING (8)
+          END PROGRAMMING (14)
+
+      16F720
+
+        Reset: 62x  (Vpp before Vdd)
+
+        Read: 16f
+
+        Erase: 16f7x7
+
+        Write: 16f688
+
+          BEGIN PROGRAMMING, internally timed (8)
+
+      16F72X
+
+        Reset: 62x  (Vpp before Vdd)
+
+        Read: 16f
+
+        Erase: 16f88x
+
+        Write: 16f88x
+
+          BEGIN PROGRAMMING, externally timed (24)
+          END PROGRAMMING (10)
+
+      16F87xA -  PIC 16F87xA and related parts, like 18F877A.
+
+        Reset: 18f
+
+          Vdd before Vpp
+
+        Read: 16f
+
+        Erase: 16f87xa
+
+        Write, except config word: 16fa
+
+          BEGIN PROGRAMMING (8)
+          END PROGRAMMING (23)
+
+        Write config word: 16fa
+
+          BEGIN ERASE/PROGRAMMING CYCLE (24)
+          Write time set to 8mS regardless of TPROG.
+
+      16F88x  -  PIC 16F88x, like 16F883-16F887
+
+        Reset: 62x
+
+          Vpp before Vdd
+
+        Read: 16f
+
+        Erase: 16f88x
+
+          Writes both config words to 0, then issues BULK ERASE PROGRAM
+          MEMORY (9) with PC at 2000h.  10mS wait.
+
+        Write: 16f88x
+k
+          BEGIN PROGRAMMING, externally timed (24)
+          END PROGRAMMING (10)
+
+      12F1501  -  12F1501 and related (enhanced 14 bit core without
+        EEPROM.  Like 16F182x except without EEPROM).
+
+        Reset: 62x or 16F182x
+
+          If programmer can hit 8.0-9.0V Vpp, then 62x algorithm (Vpp
+          before Vdd).  Otherwise uses 16F182x algorithm (key sequence to
+          enter program mode where Vpp is held low the whole time).
+
+        Read: enhanced (4 digit) 16F
+
+        Erase: 16f182x
+
+          Adr to 8000h, BULK ERASE PROGRAM MEMORY (9), 10ms
+
+        Write: 16f182x
+
+          Normal program memory: BEGIN PROG 24, END PROG 10
+          Config space: BEGIN PROG 8, wait 10ms
+
+      16F182X  -  16F182x and related (enhanced 16 bit core with EEPROM).
+
+        Reset: 62x or 16F182x
+
+          If programmer can hit 8.0-9.0V Vpp, then 62x algorithm (Vpp
+          before Vdd).  Otherwise uses 16F182x algorithm (key sequence to
+          enter program mode where Vpp is held low the whole time).
+
+        Read: enhanced (4 digit) 16F
+
+        Erase: 16f182x
+
+          Adr to 8000h, BULK ERASE PROGRAM MEMORY (9), 10ms, BULK ERASE
+          DATA MEMORY (11), 10ms.
+
+        Write: 16f182x
+
+          Normal program memory: BEGIN PROG 24, END PROG 10
+          Config space: BEGIN PROG 8, wait 10ms
+
+      16F15313  -  16F15313 and related.  These devices use 8 bit
+          programming commands and always transfer 24 bit data.
+
+        Reset: 18f
+
+          Vdd before Vpp
+
+        Read: 16F15313
+
+          Command READ DATA FROM NVM, with increment (FEh).
+
+        Erase: 16F15313
+
+          Adr to 8000h, bulk erase (F0h), wait 10 ms.
+
+        Write: 16F15313
+
+          Commands to load data with no increment (00h), with increment
+          (02h), and start internally times write (E0h).
+
+      18F  -  Generic 18F, such as 18F452.
+
+        Reset: 18f
+
+          Vdd before Vpp
+
+        Read: 18f
+
+        Erase: 18f
+
+        Write prog space: write_18, uses 2#1100 for single panel setup.
+
+        Write data space: write_18d
+
+      18F14K22
+
+        Reset: 18f
+
+        Read: 18f
+
+        Erase: 18f14k22
+
+        Write: 18f2520
+
+      18F2520  -  18F2520 and those PICs that adhere to the same
+        programming spec.  As of 5 June 2005 this was DS39622E and covered
+        32 different 18F parts.
+
+        Reset: 18f
+
+          Vdd before Vpp
+
+        Read: 18f
+
+        Erase: 18f2520
+
+        Write: 18f2520
+
+      18F2523
+
+        Reset: 18f
+
+          Vdd before Vpp
+
+        Read: 18f
+
+        Erase: 18f2523
+
+        Write: 18f2520
+
+      18F6310
+
+        Reset: 18f
+
+          Vdd before Vpp
+
+        Read: 18f
+
+        Erase: 18f6310
+
+        Write: 18f2520
+
+      18F6680  -  18F6680 and related.
+
+        Reset: 18f
+
+          Vdd before Vpp
+
+        Read: 18f
+
+        Erase: 18f
+
+        Write prog space: write_18, uses 0 for single panel setup.
+
+        Write data space: write_18d
+
+      18J
+
+        Reset: 18j
+
+        Read: 18f
+
+        Erase: 18f25j10
+
+        Write: 18f2520
+
+      18K80  -  For 18FxxK80
+
+        Reset:
+
+          Low voltage program mode entry (18J): Vdd, Vpp blip, 32 bit key,
+            Vpp
+
+          High voltage program mode entry (18K80): Vdd, Vpp, 32 bit key
+
+        Read: 18F
+
+        Erase: 18K80
+
+        Write: 18F2520
+
+      24F  -  PIC 24F parts
+
+        Reset: 24f
+
+        Read: 30f
+
+        Erase: 24f
+
+        Write: 30f
+
+      24H  -  PIC 24H or dsPIC 33F
+
+        Reset: 24h
+
+        Read: 30f
+
+        Erase: 24h
+
+        Write: 30f
+
+      30F  -  dsPIC 30Fxxxx
+
+        Reset: 30f
+
+        Read: 30f
+
+        Erase: 30
+
+        Write: 30f
+
+      24FJ  -  PIC 24F parts
+
+        Reset: 24fj
+
+        Read: 30f
+
+        Erase: 24fj
+
+        Write: 30f
+
+      33EP  -  PIC 24EP or dsPIC 33EP
+
+        Reset: 33ep
+
+        Read: 30f
+
+        Erase: 33ep
+
+        Write: 30f
+
+    A TYPE command is required in each ID block.
+
+  PINS n
+
+    Specifies the number of pins the chip has in the DIP package, or how
+    many pins are presented to the DIP socket via an adapter if no DIP
+    variant exists.
+
+  WRITEBUF n
+
+    Indicates the "write buffer" size of the target chips.  This generally
+    means the number of bytes or words that are written to the flash
+    program memory at a time.  This value is ignored for algorithms where
+    the write buffer is either known inherently or a write buffer value is
+    not meaningful.  The default is 1.
+
+    For the 16 bit parts, this is the number of addresses, not number of
+    program memory words.
+
+  WBUFRANGE start len
+
+    Indicate the range of target chip addresses that the write buffer
+    applies to.  The range is initially set to 0 0, meaning the write
+    buffer does not apply anywhere and all writes are performed with
+    individual words.  The range is set to the full possible program
+    memory range for the particular target type by the TYPE command.  This
+    default is sufficient in most cases.  If used, the WBUFRANGE command
+    must come after the TYPE command in that block, because the value is
+    reset by the type command.
+
+  NPROG n
+
+    Specifies the size of the regular program memory in addressable units.
+
+  RESADR (adr | NONE)
+
+    Sets the program memory address the target chip is set to on a reset.
+    For 12 bit core parts, this defaults to twice the number of regular
+    program memory addresses minus 1.  For example, if there are 512
+    program memory words (0-1FFh), then the reset address defaults to
+    3FFh.  This reset address defaults to 0 for other PICs.
+
+    The special keyword NONE indicates that the address is unknown after a
+    reset.  The default is that it is known.
+
+  MASKPRGE mask
+
+    Bit mask for the valid bits of a program memory word at an even
+    address.
+
+  MASKPRGO mask
+
+    Bit mask for the valid bits of a program memory word at an odd
+    address.
+
+  MASKPRG mask
+
+    Bit mask for the valid bits of a program memory word.  This sets both
+    the MASKPRGE and MSKPRGO value to MASK.
+
+  NDAT n
+
+    Specifies the size of the non-volatile data memory in addressable
+    units.
+
+  MASKDAT mask
+
+    Bit mask for the valid bits of a non-volatile data memory word.
+
+  DATMAP adr
+
+    Specifies the starting address of where data for the data memory is
+    mapped in a MPLAB HEX file.
+
+  EECON1 adr
+
+    Specifies the address of the EECON1 register within the target
+    machine.  This is only relevant for some PIC types, like the PIC
+    18.  The default is FA6h, which used to be the address of EECON1
+    on all PIC 18.  Some newer PICs, like the 18FxxK80 series for
+    example, have the EECON1 register at a different address.
+
+  EEADR adr
+
+    Specifies the address of the EEADR register within the target
+    machine.  This is only relevant for some PIC types, like the PIC
+    18.  The default is FA9h, which used to be the address of EEADR
+    on all PIC 18.  Some newer PICs, like the 18FxxK80 series for
+    example, have the EEADR register at a different address.
+
+  EEADRH adr
+
+    Specifies the address of the EEADRH register within the target
+    machine.  This is only relevant for some PIC types, like the PIC
+    18.  The default is FAAh, which used to be the address of EEADRH
+    on all PIC 18.  Some newer PICs, like the 18FxxK80 series for
+    example, have the EEADRH register at a different address.
+
+  EEDATA adr
+
+    Specifies the address of the EEDATA register within the target
+    machine.  This is only relevant for some PIC types, like the PIC
+    18.  The default is FA8h, which used to be the address of EEDATA
+    on all PIC 18.  Some newer PICs, like the 18FxxK80 series for
+    example, have the EEDATA register at a different address.
+
+  VISI adr
+
+    Address of VISI register.  Default 784h
+
+  TBLPAG adr
+
+    Address of TBLPAG register.  Default 032h
+
+  NVMCON adr
+
+    Address of NVMCON register.  Default 760h
+
+  NVMKEY adr
+
+    Address of NVMKEY register.  Default 766h
+
+  NVMADR adr
+
+    Address of NVMADR register.  Default 762h
+
+  NVMADRU adr
+
+    Address of NVMADRU register.  Default 764h
+
+  TPROG ms
+
+    Milliseconds to wait after each program (write) operation.
+
+  TPROGD ms
+
+    Milliseconds to wait after each program (write) operation to data
+    EEPROM.  The default is the TPROG value.  If a TPROGD command is used,
+    then it should appear after the TPROG command, else the TPROGD value
+    will be overwritten by the TPROG command.
+
+  OTHER adr mask
+
+    Specifies one programmable address in the program address space that
+    is not part of the regular program memory and does not store device
+    configuration bits.  All the regular program memory is assumed to be
+    in a contiguous region starting at address 0 with the size specified
+    by the NPROG command, and the configuration bit locations are
+    specified by one or more CONFIG commands.  There may be multiple OTHER
+    commands, but they must appear after the NPROG command.
+
+  CONFIG adr mask
+
+    Specifies one address in the program memory space where device
+    configuration bits are stored.  MASK indicates the valid programmable
+    bits within this word.  There may be multiple CONFIG commands, but
+    they must appear after the NPROG command.
+
+  ENDID
+
+    Ends an ID block.

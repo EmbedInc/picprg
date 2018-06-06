@@ -88,6 +88,9 @@ define picprg_cmd_tprogf;
 define picprg_cmd_ftickf;
 define picprg_cmd_sendser;
 define picprg_cmd_recvser;
+define picprg_cmd_send8m;
+define picprg_cmd_send24m;
+define picprg_cmd_recv24m;
 
 %include 'picprg2.ins.pas';
 {
@@ -1526,7 +1529,7 @@ procedure picprg_cmd_reboot (          {restart control processor}
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_reboot_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('reboot', stat);
+    sys_stat_parm_str ('REBOOT', stat);
     return;
     end;
 
@@ -1546,7 +1549,7 @@ procedure picprg_cmd_read64 (          {read block of 64 data words}
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_read64_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('read64', stat);
+    sys_stat_parm_str ('READ64', stat);
     return;
     end;
 
@@ -1589,7 +1592,7 @@ procedure picprg_cmd_testset (         {set new test mode}
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_testset_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('testset', stat);
+    sys_stat_parm_str ('TESTSET', stat);
     return;
     end;
 
@@ -1611,7 +1614,7 @@ procedure picprg_cmd_eecon1 (          {indicate address of EECON1 register in t
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_eecon1_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('testset', stat);
+    sys_stat_parm_str ('EECON1', stat);
     return;
     end;
 
@@ -1633,7 +1636,7 @@ procedure picprg_cmd_eeadr (           {indicate address of EEADR register in ta
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_eeadr_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('testset', stat);
+    sys_stat_parm_str ('EEADR', stat);
     return;
     end;
 
@@ -1655,7 +1658,7 @@ procedure picprg_cmd_eeadrh (          {indicate address of EEADRH register in t
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_eeadrh_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('testset', stat);
+    sys_stat_parm_str ('EEADRH', stat);
     return;
     end;
 
@@ -1677,7 +1680,7 @@ procedure picprg_cmd_eedata (          {indicate address of EEDATA register in t
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_eedata_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('testset', stat);
+    sys_stat_parm_str ('EEDATA', stat);
     return;
     end;
 
@@ -1699,7 +1702,7 @@ procedure picprg_cmd_visi (            {indicate address of VISI register in tar
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_visi_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('testset', stat);
+    sys_stat_parm_str ('VISI', stat);
     return;
     end;
 
@@ -1721,7 +1724,7 @@ procedure picprg_cmd_tblpag (          {indicate address of TBLPAG register in t
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_tblpag_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('testset', stat);
+    sys_stat_parm_str ('TBLPAG', stat);
     return;
     end;
 
@@ -1743,7 +1746,7 @@ procedure picprg_cmd_nvmcon (          {indicate address of NVMCON register in t
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_nvmcon_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('testset', stat);
+    sys_stat_parm_str ('NVMCON', stat);
     return;
     end;
 
@@ -1765,7 +1768,7 @@ procedure picprg_cmd_nvmkey (          {indicate address of NVMKEY register in t
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_nvmkey_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('testset', stat);
+    sys_stat_parm_str ('NVMKEY', stat);
     return;
     end;
 
@@ -1787,7 +1790,7 @@ procedure picprg_cmd_nvmadr (          {indicate address of NVMADR register in t
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_nvmadr_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('testset', stat);
+    sys_stat_parm_str ('NVMADR', stat);
     return;
     end;
 
@@ -1809,7 +1812,7 @@ procedure picprg_cmd_nvmadru (         {indicate address of NVMADRU register in 
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_nvmadru_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('testset', stat);
+    sys_stat_parm_str ('NVMADRU', stat);
     return;
     end;
 
@@ -1831,7 +1834,7 @@ procedure picprg_cmd_tprogf (          {set programming time in fast ticks}
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_tprogf_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('testset', stat);
+    sys_stat_parm_str ('TPROGF', stat);
     return;
     end;
 
@@ -1852,7 +1855,7 @@ procedure picprg_cmd_ftickf (          {get frequency of fast ticks}
 begin
   if not pr.fwinfo.cmd[ord(picprg_cop_ftickf_k)] then begin {cmd not implemented ?}
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    sys_stat_parm_str ('testset', stat);
+    sys_stat_parm_str ('FTICKF', stat);
     return;
     end;
 
@@ -1917,5 +1920,67 @@ begin
   picprg_cmd_start (pr, cmd, ord(picprg_cop_recvser_k), stat);
   cmd.recv.nresp := 1;                 {set number of fixed response bytes}
   cmd.recv.lenby := 1;                 {index of length byte for variable-length data}
+  picprg_send_cmd (pr, cmd, stat);     {send the command}
+  end;
+{
+*******************************************************************************
+}
+procedure picprg_cmd_send8m (          {send 8 bits to target, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     cmd: picprg_cmd_t;           {info about the command in progress}
+  in      dat: sys_int_conv32_t;       {the data bits to send, MSB first}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+begin
+  if not pr.fwinfo.cmd[ord(picprg_cop_send8m_k)] then begin {cmd not implemented ?}
+    sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
+    sys_stat_parm_str ('SEND8M', stat);
+    return;
+    end;
+
+  picprg_cmd_start (pr, cmd, ord(picprg_cop_send8m_k), stat);
+  picprg_add_i8u (cmd, dat);
+  picprg_send_cmd (pr, cmd, stat);     {send the command}
+  end;
+{
+*******************************************************************************
+}
+procedure picprg_cmd_send24m (         {send 24 bits to target, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     cmd: picprg_cmd_t;           {info about the command in progress}
+  in      dat: sys_int_conv32_t;       {the data bits to send, MSB first}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+begin
+  if not pr.fwinfo.cmd[ord(picprg_cop_send24m_k)] then begin {cmd not implemented ?}
+    sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
+    sys_stat_parm_str ('SEND24M', stat);
+    return;
+    end;
+
+  picprg_cmd_start (pr, cmd, ord(picprg_cop_send24m_k), stat);
+  picprg_add_i24u (cmd, dat);
+  picprg_send_cmd (pr, cmd, stat);     {send the command}
+  end;
+{
+*******************************************************************************
+}
+procedure picprg_cmd_recv24m (         {read 24 bits from the target, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     cmd: picprg_cmd_t;           {info about the command in progress}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+begin
+  if not pr.fwinfo.cmd[ord(picprg_cop_recv24m_k)] then begin {cmd not implemented ?}
+    sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
+    sys_stat_parm_str ('RECV24M', stat);
+    return;
+    end;
+
+  picprg_cmd_start (pr, cmd, ord(picprg_cop_recv24m_k), stat);
+  cmd.recv.nresp := 3;
   picprg_send_cmd (pr, cmd, stat);     {send the command}
   end;

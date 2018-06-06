@@ -1,0 +1,1742 @@
+         Embed Inc PIC Programmers Host Protocol Specification
+                       Version 29.9, 28 May 2018
+
+This document describes the Embed Inc PIC programmer communications
+protocol.  This protocol is used to communicate between a host computer
+and a PIC programmer, such as the Embed Inc EasyProg, ProProg, USBProg,
+and LProg programmers.
+
+Revisions
+
+    1.0, 1 June 2003
+
+         First released version.
+
+    1.1, 2 June 2003
+
+         Minor typo fix.
+
+    1.2, 18 August 2003
+
+         Updated to firmware version PRG 4.
+
+    1.3, 8 August 2004
+
+         Fixed to add reset ID 3.  Was in firmware but omitted from
+         this document.
+
+    5.0, 17 August 2004
+
+         Added new commands to support ProProg features not present on
+         the EasyProg.  Started new spec revision numbering system that
+         leaves off from the old firmware version numbers.
+
+         Redefined CVLO and CVHI return values of the FWINFO command.
+
+         Added commands FWINFO2, RESADR, and CHKCMD.
+
+         Added IDWRITE ID 3 and IDREAD ID 3.
+
+    5.1, 21 August 2004
+
+         Added clarification to FWINFO command description about how
+         host software should determine the set of commands implemented
+         in the firmware.
+
+         Added clarification to FWINFO2 command description about what
+         to assume when the FWINFO2 command is not available.
+
+    6.0, 7 September 2004
+
+         Added commands GETPWR, GETVDD, and GETVPP.
+
+    7.0, 12 September 2004
+
+         Added WAITCHK command.
+
+    8.0, 16 September 2004
+
+         Added commands GETBUTT, APPLET, and RUN.
+
+    8.1, 18 September 2004
+
+         Minor typo fix.  Added clarification to APPLED command.
+
+    9.0, 1 October 2004
+
+         Added HIGHZ and NTOUT commands.  Clarified power up and host
+         input timeout state.
+
+    9.1, 6 November 2004
+
+         Noted spec revisions the various reset, read, and write IDs
+         are required in.  This was previously mentioned only in the
+         revision history, is now mentioned in the descriptions of the
+         commands that set the IDs.
+
+    10.0 28 November 2004
+
+         Added GETCAP command.  Variable Vdd is optional if so
+         described by the GETCAP command.  Reset ID 3, write IDs 1-3,
+         and read IDs 1-3 are now optional if so described by the
+         GETCAP command.  These IDs were required in previous
+         versions.  Commands PINS, VDDVALS, VDDLOW, VDDHIGH, TEST1,
+         PAN18 were previously required and are now optional.
+
+    11.0 16 February 2005
+
+         Added optional commands SEND3, SEND4, RECV3, RECV4, W30PGM,
+         TEST2, R30PGM, and DATADR.  Added RESET ID 4, write ID 4, and
+         read ID 4.  All these new IDs support the dsPIC target type.
+
+    12.0 27 March 2005
+
+         Added write ID 5 to support PIC 16F87xA.
+
+    13.0 9 April 2005
+
+         Added write ID 6 to support PIC 16F716.
+
+    14.0 26 June 2005
+
+         Added write IDs 7 and 8, read ID 5, and WBUFSZ command.
+
+    15.0 3 July 2005
+
+         Added VPP command and GETCAP ID 4.  This allows the host to
+         determine how the programmer Vpp capabilities and provides a
+         means for controlling the Vpp level when that is supported by
+         a programmer.
+
+    16.0 22 September 2005
+
+         Added reset ID 5, write ID 9, and WBUFEN command.  These are
+         required to support 16F87/88.
+
+    17.0 15 October 2005
+
+         Added write ID 10 to support 16F77 and related.
+
+    18.0 5 November 2005
+
+         Redefined high bit of IDRESET ID parameter to indicate Vdd
+         should be removed before Vpp when turning off the target.
+         Previously all 8 bits were the ID, now only the low 7 bits.
+
+    19.0 29 January 2005
+
+         Added GETTICK command to accomodate programmers with other
+         than 200uS internal clock tick period.  Added VDD command for
+         programmers that handle only a single Vdd value at a time.
+         The older VDDVALS, VDDLOW, and VDDHIGH commands are considered
+         obsolete and new programmers are encouraged to implement the
+         VDD command instead.  The VDDNORM command must always be
+         available and enables Vdd to its "normal" level using the old
+         method, or to the single specified value using the new
+         method.  IDWRITE now resets the next Vdd level to 5V and the
+         next Vpp level to 13V.
+
+    19.1 8 July 2006
+
+         Added description of how protocol is implemented over USB.  No
+         change to protocol over RS-232 as described in version 19.0.
+
+    19.2 6 August 2006
+
+         Minor wording change to better describe WAITCHK return byte.
+
+    19.3 7 August 2006
+
+         Minor typo fix in VPPOFF command description.
+
+    20.0 10 September 2006
+
+         Added NAMESET and NAMEGET commands.
+
+    21.0 13 October 2006
+
+         Added REBOOT command.
+
+    22.0 12 November 2006
+
+         Added READ64 command.
+
+    22.1 13 November 2006
+
+         Fixed typo in READ64 command description.
+
+    23.0 17 February 2007
+
+         Add write ID 11.
+
+    23.1 12 May 2007
+
+         Added mention of ID 2 to FWINFO2 command, indicating the USBProg
+         firmware.  The protocol has worked this way since the USBProg was
+         created.  This is a documentation fix only.
+
+    24.0 12 January 2008
+
+         Added IDRESET ID 6 to support 18FJ devices.
+
+    25.0 11 April 2008
+
+         Added IDRESET ID 7 to support 24H and 33F devices.
+
+    26.0 16 June 2008
+
+         Added GETCAP 0 1 for programmers that implement a single fixed
+         Vdd voltage.
+
+    27.0 19 June 2008
+
+         Added the implementation specific commands 240-255.
+
+    28.0 8 July 2008
+
+         Added VPPHIZ command.
+
+    29.0 11 Aug 2008
+
+         Added TESTGET and TESTSET commands.
+
+    29.1 12 Nov 2009
+
+         Added IDRESET ID 8 to support 24F devices.
+
+    29.2 4 Jan 2011
+
+         Added IDRESET, IDREAD, and IDWRITE IDs to support the 16F182x
+         subfamily.  These are the first of the enhanced (4 digit model
+         number) PIC 16 supported.
+
+    29.3 22 Oct 2011
+
+         Added reset ID 10 to support 24FJ parts.
+
+    29.4 2 Jan 2015
+
+         Added commands EECON1, EEADR, EEADRH, and EEDATA.  These are
+         optional, but necessary for supporting some of the newer PIC 18
+         which have these registers at different addresses than all
+         previous PIC 18.
+
+    29.5 6 Feb 2015
+
+         Added reset ID 11.
+
+    29.6 11 Oct 2015
+
+         Added 12 bit core parts to DATADR command description.
+
+    29.7 20 Feb 2016
+
+         Added support for PIC 24EP and dsPIC 33EP series.  This
+         included:
+
+           Added commands VISI, TBLPAG, NVMCON, NVMKEY, NVMADR,
+           NVMADRU, FTICKF, and TPROGF.
+
+           Added IDRESET ID 12.
+
+         The IDRESET command now causes all assumed target register
+         addresses to be reset to their defaults.
+
+    29.8 13 Dec 2016
+
+         Added SENDSER and RECVSER commands.
+
+    29.9 28 May 2018
+
+         Added read ID 7 and write ID 13.  Added commands SEND8M, SEND24M,
+         and RECV24M.  These changes were to support the programming
+         protocol that uses 8 bit opcodes and 24 bit data words.  This
+         seems to be the "new" 16F1xxxx protocol, first introduced in
+         parts like the 16F15313.
+
+
+Overview
+
+  A host computer communicates with the programmer via a bi-directional
+  stream of bytes.  The protocol is independent of the underlying
+  transport medium except as noted in the following sections.
+
+  Communication is bidirectional, but the unit only sends data in direct
+  response to commands from the host.  All host commands start with an
+  opcode byte to identify the command, followed by data bytes (if any)
+  that are dependent on the particular command.  A command may result in
+  the unit sending response bytes to the host.  The format of these
+  response bytes, if any, is dependent on the particular command they are
+  sent in response to.
+
+  Unless otherwise noted, individual values are unsigned bytes, and multi-
+  byte values are sent in least to most significant byte order.
+
+  RS-232 transport
+
+    The RS-232 settings are 115.2 kBaud, 1 start bit, 1 stop bit, 8 data
+    bits, no parity, no flow control.  This interface is not inherently
+    flow controlled, so a ACK byte is sent in response to every command.
+    See the Flow Control section (below) for details.
+
+  USB transport
+
+    Endpoint 1 configured for bulk transfers is used in both directions to
+    implement the bi-directional stream of bytes.  This interface is
+    inherently flow controlled, so no ACK byte is sent in response to
+    every command.
+
+
+Flow control
+
+  In many cases the unit can not process all commands at the speed with
+  which they can be sent from the host.  Flow control has been built into
+  the protocol to avoid overruns in those cases where the underlying
+  transport does not already provide flow control and guarantee overrun
+  prevention.
+
+  When flow control is implemented in this protocol, every valid command
+  is acknowledged with an ACK response when processing of a command opcode
+  byte begins.  The host must not send a new command before receiving the
+  ACK from the previous.  This guarantees that the maximum unprocessed
+  bytes the unit needs to store is two commands minus one byte.
+
+  For example, assume the host wants to send a string of commands that
+  have 8 data bytes each.  The host sends the 9 bytes of the first command
+  (1 opcode byte, 8 data bytes).  The unit is busy processing the previous
+  command, so these 9 bytes are stored but not processed immediately.  The
+  host now stalls because a complete command has been sent but no ACK
+  received yet.  After the unit completes the previous command, it fetches
+  the opcode byte of the stored command, validates it, then sends the ACK
+  response.  The host is now free to send the next command, which is
+  another 9 bytes total.  Worst case, the unit now has the 8 data bytes of
+  the first command plus all 9 bytes of the second command in its input
+  buffer.  This is the maximum, because the 8 data bytes of the first
+  command and the opcode byte of the second command will have been removed
+  from the input buffer before the next ACK is sent.
+
+  An ACK response is a single byte with the value 1.
+
+
+Command stream timeout
+
+  An input stream timeout occurs (if enabled) when there are 5 or more
+  seconds between bytes from the host.  The timeout is enabled at power
+  up and whenever an opcode byte is received.  It is disabled by
+  selected commands, like RUN and NTOUT.  The timeout is also
+  temporarily disabled during any deliberate wait interval, although
+  these are generally much shorter than 5 seconds.
+
+  The unit assumes communication with the host has been lost on a timeout.
+  It therefore aborts any command in progress and resets to the power up
+  state.  This includes setting all target PIC lines to the most benign
+  and least intrusive state, which is the same as if the HIGHZ command had
+  been executed.  The STATUS LED will show the idle state, and the APP LED
+  (if present) will be off.
+
+  The 5 second host timeout can be disabled by installing the jumper
+  labeled "Debug" on the circuit board.  This allows for single stepping
+  the host software during debugging when there can be large delays
+  between individual bytes and it would be undesirable for the unit to
+  abort a command and reset.  Different programmers may not implement this
+  timeout at all.
+
+
+Commands
+
+  This section describes all the valid commands and their responses, if
+  any.  For each command, the command name is shown first, followed by a
+  colon and the decimal value of the opcode byte.  The description of data
+  bytes, if any, follows.  If the unit sends bytes in response to the
+  command, these are shown on a separate line starting with "RSP:".  If
+  the command was defined at version 5 of this spec or later, then the
+  lowest spec version including this command is also indicated on a
+  separate line.
+
+  Some commands are optional, starting at version 6.  These are indicated
+  by "optional" following the spec version number they were first defined
+  in.  In this case, the host must use the CHKCMD command to determine
+  whether the optional command is present.  It is recommended that the
+  CHKCMD command be used to determine the availability of all commands in
+  any case when the firmware reports spec version 5 or later.
+
+  Commands with no starting version listed must be implemented by all
+  firmware.  Commands with a specific version listed and not indicated as
+  optional must be implemented by any firmware claiming compatibility with
+  the spec version listed for that command or greater.
+
+  All commands were implemented in the official firmware version 2 unless
+  otherwise noted.  Firmware version 2 was the first publicly released
+  version, so this represents the minimum guaranteed baseline command set.
+  Applications should inquire the firmware version using the FWINFO
+  command to determine the command set versions supported.  See details in
+  the FWINFO command description.
+
+  When flow control at the protocol level is in use, all valid commands
+  cause an ACK response to be sent before any response bytes for the
+  command.  This ACK response is implied, and not shown in the
+  descriptions below.
+
+  Unless explicitly stated to the contrary, all necessary wait times
+  required due to the programmer itself (not the target chip) are
+  automatically guaranteed.  For example, the VPPON (enable programming
+  voltage) command starts an internal wait so that subsequent commands are
+  not processed until the programming voltage has stabalized.  There are
+  built in waits for all changes to Vpp and Vdd.  Therefore, a command to
+  change Vpp or Vdd can be immediately followed by commands that need to
+  be executed with the new settings.  The host command stream will
+  automatically be slowed down as needed by the flow control mechanism.
+
+  Invalid command opcode bytes are ignored.  No ACK response is sent for
+  these.
+
+  The valid commands are:
+
+  NOP: 1
+
+       No operation (but ACK response is sent if using protocol flow
+       control, as with all valid commands).
+
+  OFF: 2
+
+       Power down the target chip.  Vdd and Vpp are both set to 0 volts.
+
+  PINS: 3
+       RSP: <data>
+       (Optional at version 10 or higher)
+
+       Returns status that gives some information about how many pins the
+       target chip has.  The bits in DATA mean:
+
+         bit 0 (LSB)  -  1 if chip has 18 or less pins, 0 if more than 18
+
+       All remaining bits are reserved and set to 0.  Reserved bits may
+       have meaning in future versions.
+
+       This value is only correct if the target chip is in the built-in
+       programming socket.  It is not valid on units that do not have a
+       programming socket, or that are performing in-circuit programming
+       whether a programming socket is present or not.
+
+  SEND1: 4 <n> <data>
+
+       Send up to 8 data bits to the target chip.  N must be 0-7 and is
+       the number of bits to send - 1.  DATA is the data to send, starting
+       with the LSB.
+
+  SEND2: 5 <n> <i16 data>
+       (Optional at version 11 or higher)
+
+       Send up to 16 data bits to the target chip.  N must be 0-15 and is
+       the number of bits to send - 1.  DATA is the data to send, starting
+       with the LSB.
+
+  SEND3: 52 <n> <i24 data>
+       (Version 11, optional)
+
+       Send up to 24 data bits to the target chip.  N must be 0-23 and is
+       the number of bits to send - 1.  DATA is the data to send, starting
+       with the LSB.
+
+  SEND4: 53 <n> <i32 data>
+       (Version 11, optional)
+
+       Send up to 32 data bits to the target chip.  N must be 0-31 and is
+       the number of bits to send - 1.  DATA is the data to send, starting
+       with the LSB.
+
+  RECV1: 6 <n>
+       RSP: <data>
+
+       Read up to 8 data bits from the target chip.  N must be 0-7 and is
+       the number of bits to read - 1.  The returned bits are justified
+       into the LSB end of DATA with the upper unused bits of DATA set to
+       0.  The bits are read in least to most significant order.  The
+       first bit read is returned in bit 0, the second in bit 1, etc.
+
+  RECV2: 7 <n>
+       RSP: <i16 data>
+       (Optional at version 11 or higher)
+
+       Read up to 16 data bits from the target chip.  N must be 0-15 and
+       is the number of bits to read - 1.  The returned bits are justified
+       into the LSB end of DATA with the upper unused bits of DATA set to
+       0.  The bits are read in least to most significant order.  The
+       first bit read is returned in bit 0, the second in bit 1, etc.
+
+  RECV3: 54 <n>
+       RSP: <i24 data>
+       (Version 11, optional)
+
+       Read up to 24 data bits from the target chip.  N must be 0-23 and
+       is the number of bits to read - 1.  The returned bits are justified
+       into the LSB end of DATA with the upper unused bits of DATA set to
+       0.  The bits are read in least to most significant order.  The
+       first bit read is returned in bit 0, the second in bit 1, etc.
+
+  RECV4: 55 <n>
+       RSP: <i32 data>
+       (Version 11, optional)
+
+       Read up to 32 data bits from the target chip.  N must be 0-31 and
+       is the number of bits to read - 1.  The returned bits are justified
+       into the LSB end of DATA with the upper unused bits of DATA set to
+       0.  The bits are read in least to most significant order.  The
+       first bit read is returned in bit 0, the second in bit 1, etc.
+
+  CLKH: 8
+
+       Set the clock line to the target high.
+
+  CLKL: 9
+
+       Set the clock line to the target low.
+
+  DATH: 10
+
+       Set the data line to the target high.
+
+  DATL: 11
+
+       Set the data line to the target low.
+
+  DATR: 12
+       RSP: <data>
+
+       Read the data line from the target.  The result is returned in the
+       low bit of DATA.  Unused DATA bits are set to 0.
+
+  TDRIVE: 13
+       RSP: <data>
+
+       Test whether the target chip is driving the data line.  DATA is
+       returned 1 if the target is driving the line and 0 if the target is
+       in high impedence state.
+
+  WAIT: 14 <i16 ticks>
+
+       Force a minimum wait time before the next operation is performed on
+       the target chip.  The wait time is the number of internal clock
+       ticks to wait for.  Up to spec version 18 the clock tick period was
+       defined to be 200 us.  Starting at version 19 it can be a different
+       value if the GETTICK command is implemented.  The host command
+       stream timeout is disabled during the wait time.
+
+  GETTICK: 64
+       RSP: <I16 ticktime>
+       (Version 19)
+
+       Indicates the period of the internal clock ticks that will be used
+       with the WAIT, TPROG and other commands that require a clock ticks
+       parameter command.  TICKTIME is an unsigned 16 bit integer in units
+       of 100 ns.  The default is 200 us when the GETTICK command is not
+       implemented.
+
+  FWINFO: 15
+       RSP: <org> <cvlo> <cvhi> <vers> <i32 info>
+
+       Return version and other information about this firmware.  The
+       returned values are:
+
+         ORG:  1-254 ID of the organization that is responsible for this
+            firmware.  A value of 1 indicates this is in the sequence of
+            official released firmware.  Values of 0 and 255 are reserved.
+
+         CVLO:  1-254 lowest version of this spec that the firmware is
+            backwards compatible with.  0 indicates not compatible with
+            any offical release.  255 is reserved.
+
+         CVHI:  1-254 highest version of this spec that the firmware is
+            compatible with.  0 indicates not compatible with any offical
+            release.  255 is reserved.
+
+         VERS:  1-254 sequential version number within the organization
+            responsible for this firmware.  0 and 255 are reserved.
+
+         INFO:  Arbitrary 32 bits of information private to the
+            organization responsible for this firmware.  This value is
+            always 0 for an official version.
+
+       This command was slightly redefined in spec version 5.  Previously,
+       the CVLO and CVHI fields indicated the lowest and highest official
+       firmware versions that this particular firmware was compatible
+       with.  To support multiple firmware tracks on different devices,
+       these fields have been changed to refer to the major versions of
+       this specification.
+
+       The range of CVLO and CVHI values reported by any publicly released
+       firmware at the time of spec version 5 was 2-4.  Host software
+       should therefore interpret CVHI and CVLO values of 2-4 to imply
+       compatibility with spec version 1, whereas values of 5 or more
+       specifically indicate the spec version number.
+
+       The procedure for the host software to determine which commands are
+       available in the firmware is:
+
+       1)   Issue the FWINFO command.  If the CVHI value is less then 2,
+            stop.  Firmware version 1 was not publicly released and is not
+            supported.  The programmer firmware must be upgraded.
+
+       2)   If the CVHI value from the FWINFO command is 2-4, then
+            commands 1-38 may be used.  All other commands are illegal.
+
+       3)   If the CVHI value from the FWINFO command is 5 or greater,
+            then the CHKCMD command (41) is available.  The CHKCMD command
+            should be used to inquire about all possible commands to get
+            the complete list of available commands.
+
+  FWINFO2: 39
+       RSP: <firmware ID>
+       (Version 5)
+
+       Provides additional information about the target firmware and
+       hardware.  A FWINFO command must always be issued before FWINFO2 to
+       determine whether the FWINFO2 command is available.  The FWINFO2
+       values are interpreted within the context of the FWINFO values. The
+       returned values are:
+
+         FIRMWARE ID:  ID of the firmware branch or track.  These numbers
+              are uniquely assigned by each organization as identified by
+              the ORG value of the FWINFO command.  For the official line
+              of firmware (ORG = 1), the values are:
+
+              0 -  PRG firmware.  This is the standard controlling
+                   firmware of the EasyProg.
+
+              1 -  PPRG firmware.  This is the standard controlling
+                   firmware of the ProProg.
+
+              2 -  EUSB firmware.  This is the standard controlling
+                   firmware of the USBProg and USBProg2.
+
+              3 -  LPRG firmware.  This is the standard controlling
+                   firmware of the LProg.
+
+       The host software should act as if FIRMWARE ID is 0 when this
+       command is not available, which is in spec version 1.
+
+  VDDVALS: 16 <low> <norm> <high>
+       (Optional at version 10 or higher, see GETCAP and VDD commands)
+
+       Set the low, normal, and high target chip supply voltage levels.
+       Each value is the supply voltage level where 0 - 250 maps to 0 - 6
+       volts.  In other words, the values are in units of 24mV.  Each
+       value must be in the range of 0 - 250.  The default for normal is 5
+       volts (NORM = 208).  Applications should not rely on defaults for
+       the low and high voltages.
+
+       This command is being discouraged for new programmer
+       implementations in favor of the simpler VDD command.  Programmers
+       no longer need to store 3 different Vdd levels.
+
+  VDD: 65 <level>
+       (Version 19, optional)
+
+       Set the Vdd voltage level.  The 0-250 range of LEVEL maps to 0-6
+       volts, which also means that LEVEL is in units of 24mV.
+
+       For the new value to take effect, Vdd must first be set to off or
+       high impedence, then enabled (with VDDNORM command).
+
+       The Vdd level is set to 5V (LEVEL = 208) on power up, or by the
+       IDWRITE command.
+
+  VDDLOW: 17
+       (Optional at version 10 or higher, see GETCAP command)
+
+       Set the target chip supply voltage to the "low" level.  This
+       command is discouraged.  See the VDDVALS command description.
+
+  VDDNORM: 18
+
+       Enable Vdd drive to the indicated level set by the VDD command, or
+       the "normal" value set by the VDDVALS command.  When the VDD
+       command is used to set the VDD level instead of the deprecated
+       VDDVALS command, VDDNORM is the "turn on VDD" command.
+
+  VDDHIGH: 19
+       (Optional at version 10 or higher, see GETCAP command)
+
+       Set the target chip supply voltage to the "high" level.  This
+       command is discouraged.  See the VDDVALS command description.
+
+  VDDOFF: 20
+
+       Turn off the target chip power supply.  This sets Vdd to 0.
+
+  VPPON: 21
+
+       Turn on the target chip programming voltage.  The voltage level is
+       set by the VPP command, or defaults to 13V when the VPP command is
+       not present.
+
+  VPPOFF: 22
+
+       Turn off the target chip programming voltage.  This sets Vpp to 0
+       volts.
+
+  VPPHIZ: 70
+       (version 28, optional)
+
+       Set the Vpp line to high impedence to the extent possible.  This
+       command results in Vpp being driven with a higher impedence than
+       the VPPOFF command does.  Programmers that can not drive Vpp to a
+       third and higher impedence state from VPPON and VPPOFF must not
+       implement this command.
+
+  VPP: 61 <Vpp level>
+       (Version 15, optional)
+
+       Set the Vpp voltage to use when Vpp is enabled.  The argument is an
+       unsigned byte with the 0-255 range linearly mapped to 0-20 volts.
+       The resolution is therefore about 78mV.  This value is reset to the
+       default of 13V by the IDWRITE command.  The VPP command must
+       therefore be issued after the IDWRITE command.  For example, the
+       parameter byte value for a Vpp level of 11.5 volts is (11.5 / 20) *
+       255 = 147.
+
+       Programmers are not obligated to implement the full range of
+       values.  Programmers that provide other than a fixed Vpp level of
+       13 V must implement GETCAP ID 4.  The resulting Vpp value is
+       undefined if the command parameter is outside the range indicated
+       by the GETCAP command.
+
+  IDRESET: 23 <id>
+
+       Selects the algorithm for the RESET operation, resets the RESADR
+       value to 0, and resets the assumed addresses of target chip
+       registers to their defaults.
+
+       The ID parameter contains two fields.
+
+       The high bit indicates the Vpp versus Vdd order to use when turning
+       off the target chip.  0 indicates to lower Vpp first, then remove
+       Vdd.  1 indicates to remove Vdd first, then lower Vpp.  In general,
+       it is best to assert MCLR (lower Vpp) while other changes are being
+       made, except that the MCLR role of the Vpp pin can be disabled in
+       the config word of some targets.  In those cases, the target may
+       start running if Vpp is removed but Vdd remains.  For those
+       targets, the Vdd first method should be specified.
+
+       WARNING:  The definition of the high bit of ID changed in spec
+       version 18.  Previously the entire ID byte was the reset algorithm
+       ID and the Vpp/Vdd power off order was not specified.  This bit
+       must be set to 0 for any firmware versions that are only compatible
+       with spec versions below 18, but this bit is significant for later
+       firmware versions.  This makes version 18 incompatible with
+       previous versions, and any firmware that claims compatibility with
+       version 18 or higher must not claim compatibility with versions
+       below 18.
+
+       The low 7 bits of the the ID byte are the reset algorithm ID.  IDs
+       0-3 are required for versions 1-9.  IDs of 3 and greater are
+       optional starting in version 10.  If other than IDs 0-3 are
+       supported, this must be reported by the GETCAP command.  Valid
+       values of ID are:
+
+       0:  None.  Dummy algorithm that performs no action.
+
+       1:  Vpp before Vdd.  The Vpp programming voltage is raised before
+           the target chip Vdd power supply voltage.  This is required by
+           some PICs, such as the 16F628.  The target address is assumed
+           to be the RESADR value after reset.
+
+       2:  Vdd before Vpp.  The Vdd target chip power supply voltage is
+           raised before the Vpp programming voltage.  This is required by
+           some PICs, such as the 18F452.  The target address is assumed
+           to be the RESADR value after reset.
+
+       3:  Vdd before Vpp.  Like ID 2 except that the target address will
+           be unknown after this reset
+
+       4 (Version 11, optional):  For 30F (dsPIC) target types.  The
+           RESADR value is ignored.  There is no need to send a RESADR
+           command.
+
+       5 (Version 16, optional):  Vdd before Vpp, but with a short time
+           between them.  The 16F88 requires there be no more than 250 us.
+           Other target chips may require an even shorter time.  The
+           programmer should make the time from Vdd to Vpp as short as
+           possible, but certainly no more than 250 us.
+
+       6 (Version 24, optional):  Special enter program mode sequence used
+           by the 18F25J10 and others.  Vdd is raised first, then Vpp
+           blipped briefly, then a special 32 bit code is clocked in, then
+           Vpp raised again.
+
+       7 (Version 25, optional):  Special enter program mode sequence used
+           by 24H and 33F devices.  Vdd is raised first, then Vpp blipped
+           briefly, then a special 32 bit code is clocked in, then Vpp
+           raised again.  The RESADR value is ignored.  There is no need
+           to send a RESADR command.
+
+       8 (Version 29, optional):  For 24F parts.
+
+       9 (Version 29, optional):  For 16F182x parts, and probably other
+           enhanced PIC 16.  Holds Vpp low and clocks in the special
+           unlock key sequence for these parts.  Vpp continues to be held
+           low during all programming operations.  The target address is
+           considered unknown after this reset to force a reset address
+           command to be issued.  The RESADR value is irrelevant and there
+           is no need to send a RESADR command.
+
+       10 (Version 29, optional): For 24FJ parts.
+
+       11 (Version 29, optional): For 18FxxK80 high voltage program entry
+           mode.  Vdd is applied, then Vpp raised to a high voltage, then
+           a special 32 bit code clocked in.
+
+       12 (Version 29, optional): For PIC 24EP and dsPIC 33EP.  Adds
+           additional wait time in some places, and additional NOP
+           instructions in certain sequences.
+
+  RESADR: 40 <i24 address>
+       (Version 5)
+
+       Indicates the address the target chip is set to after reset for the
+       reset types that assume a fixed target address.  In spec versions
+       before 5, the reset address was always 0 when used.  To maintain
+       backwards compatibility, the IDRESET command of version 5 and later
+       resets the RESADR value to 0.  The RESADR command must therefore be
+       used after the IDRESET command.
+
+  RESET: 24
+
+       Reset the target chip and leave it ready for programming and other
+       operations.  The currently selected reset algorithm will be used.
+       These algorithms can be selected with the IDRESET command (above).
+       The program memory space will be selected (see SPPROG command).
+
+  IDWRITE: 25 <id>
+
+       Select the algorithm for the WRITE operation.  IDs of 0-3 are
+       required for versions 1-9.  IDs are optional starting in version
+       10, but must be reported so by the GETCAP command.  Valid values of
+       ID are:
+
+       0:  None.  Dummy algorithm that performs no action.
+
+       1:  Generic 16F.  This algorithm fully implements all writes to
+           PICs like the 16F877.
+
+       2:  12F6.  Fully implements all writes to PICs like 12F629, 12F675.
+
+       3 (Version 5):  For 12 bit core devices.
+
+       4 (Version 11, optional): For dsPIC devices.  If the W30PGM command
+           is implemented, then it must be used to write to ordinary
+           program memory.  In that case, this write algorithm is
+           undefined for ordinary program memory and need not be
+           implemented for that case.
+
+       5 (Version 12, optional): For 16F87xA devices.  These require 8
+           words per BEGIN ERASE/PROGRAMMING CYCLE command (8), the BEGIN
+           PROGRAMMING ONLY CYCLE command (24) requires END PROGRAMMING
+           (23), plus some other differences from the generic algorithm
+           used for ID 1.
+
+       6 (Version 13, optional): For 16F716 devices.  Writes are done with
+           BEGIN PROGRAMMING command (24) and terminated with END
+           PROGRAMMING (9).
+
+       7 (Version 14, optional): For 16F688 and related devices.  These
+           chips have a multi-word write buffer.  The write buffer is
+           loaded, then the entire buffer is written in one programming
+           operation. WBUFSZ value must be correctly set.  Uses BEGIN
+           PROGRAMMING INTERNALLY TIMED command (8) to perform write.
+
+       8 (Version 14, optional): For 18F2520 and related.  For normal
+           program memory or EEPROM only.  Writes must be performed on
+           entire write buffers at a time.  Results are undefined if a
+           write sequence does not start at the start of a write buffer
+           and end at the end of a write buffer.  Write buffer sizes for
+           these target chips vary and are specified in the configuration
+
+       9 (Version 16, optional): for 16F87/88.  Writes are done with BEGIN
+           PROGRAMMING (24) and terminated with END PROGRAMMING (23).
+           Writes must be done on entire write buffer at a time.  WBUFSZ
+           must be set correctly.
+
+       10 (Version 17, optional): for 16F77 and related.  Writes are done
+           with BEGIN PROGRAMMING (8) and terminated with END PROGRAMMING
+           (14).
+
+       11 (Version 23, optional): for 16F88x.  Writes are done with BEGIN
+           PROGRAMMING (24) and terminated with END PROGRAMMING (10).
+
+       12 (Version 29, optional): for 16F182x, and probably other enhanced
+           PIC 16.  Uses RESET ADDRESS (22) instead of resetting the
+           device to force the address to 0.  Assumes the normal program
+           memory region is 0000-7FFFh, and the config region is
+           8000-FFFFh.
+
+       13 (Version 29, optional): For 16F1xxxxx parts that use the
+           programming protocol with 8 bits opcodes, like the 16F15313.
+           All pervious PIC 16 used roughly the same protocol with 6 bit
+           opcodes.
+
+  WBUFSZ: 63 <size>
+       (Version 14, optional)
+
+       Indicates the size of the target chip write buffer in address
+       units.  This value was not needed for any write operations
+       supported before spec version 14.  For backwards compatibility,
+       this value is set to 1 by the IDWRITE command.  The WBUFSZ command
+       must therefore be used after the IDWRITE command.
+
+  WBUFEN: 62 <i24 address>
+       (Version 16, optional)
+
+       Indicate the last address covered by the write buffer.  The write
+       buffer is assumed to apply if the WBUFSZ value is greater than 1
+       and the address of a write is less than or equal to the WBUFEN
+       value.
+
+       The write buffer address extent is inherently known to some write
+       algorithms, in which case this value may be ignored.  This value is
+       irrelevant unless WBUFSZ is set to greater than 1.
+
+       If this command is implemented then it must be issued after the
+       write ID is set and before any attempt to perform a write.  Since
+       this command must be used when present and it was first defined in
+       specification version 16, any firmware implementing this command
+       must not claim compatibility with previous versions of the spec.
+
+  IDREAD: 26 <id>
+
+       Select the algorithm for the READ operation.  IDs of 0-3 are
+       required for versions 1-9.  IDs are optional starting in version
+       10, but must be reported so by the GETCAP command.  Valid values of
+       ID are:
+
+       0:  None.  Dummy algorithm that performs no action.
+
+       1:  Generic 16F.  For parts like 16F877.
+
+       2:  Generic 18F.  For parts like 18F452.  This version only needs
+           to work on program memory space.  If read ID 5 is implemented,
+           this can be the same routine.
+
+       3 (Version 5):  For 12 bit core devices.
+
+       4 (Version 11, optional):  For dsPIC devices.
+
+       5 (Version 14, optional):  For generic 18F parts.  Unlike read ID
+           2, this version must work for both program memory space and
+           EEPROM space.
+
+       6 (Version 29, optional):  For 16F182x and probably other enhanced
+           PIC 16.
+
+       7 (Version 29, optional):  For 16F PICs that use 8 bit programming
+           commands, like the 16F15356.
+
+  TEST1: 27
+       (Optional at version 10 or higher)
+
+       This command is reserved for debugging firmware.  It is re-written
+       as needed, and therefore has no fixed definition.  It is not
+       intended for normal operation, and its results are undefined.
+
+  ADR: 28 <i24 address>
+
+       Set the address for the next target operation.
+
+  READ: 29
+       RSP: <i16 data>
+
+       Read from the target chip at the current address and increment the
+       address by 1.  Two bytes of data are always returned.  If the
+       amount of data at one address is less than 16 bits, then the data
+       is justified in the low bits and the unused high bits are set to 0.
+
+  READ64: 69
+       RSP: <word 0> ... <word 63>
+
+       Read the 64 data words from the target chip starting at the current
+       address and increment the address by 64.  A 16 bit word is returned
+       for each address.  If the amount of data at one address is less
+       than 16 bits, then the data is justified in the low bits and the
+       unused high bits are set to 0.  The data returned by this command
+       is undefined if the starting address is not a multiple of 64.
+
+       The intent of this command is to allow for faster readbacks with
+       communication links that have high bandwidth but significant round
+       trip response overhead, such as the USB.  The additional possible
+       unused bits cause no harm when the communication bandwidth is
+       significantly higher than the readback speed from the target PIC,
+       but the large chunk of return data minimizes the number of
+       request/response cycles and their corresponding latency.
+
+  WRITE: 30 <i16 data>
+
+       Write to the target at the current address and then increment the
+       address by 1.  The low bits of the 16 bit data word are used when
+       the amount of data at one address is less than 16 bits.
+
+       Some write algorithms require whole WBUFSZ words to be written at a
+       time.  The write may not be performed until the last word in the
+       block is written.  Any such restriction for a particular write
+       algorithm is noted in the IDWRITE command description.
+
+  WRITE8: 60 <data 0> ... <data 7>
+       (Version 14, optional)
+
+       Write 8 words at a time.  Only the low 8 bits of each word are
+       transferred, and any remaining upper bits are assumed to be 1. This
+       command is intended as a more efficient way of transferring data to
+       the programmer when the write data is only 8 bits wide.  8 data
+       bytes can be sent with 9 communcation bytes using the WRITE8
+       command, whereas 24 communications bytes would be required by
+       successive WRITE commands.  If implemented, this command always
+       functions identically to 8 successive WRITE commands with the upper
+       byte of each data word set to all 1s.
+
+  TPROG: 31 <ticks>
+
+       Sets the programming write cycle delay time in number of
+       programmer internal clock ticks.  The clock tick period is 200 us
+       unless the GETTICK command is implemented.
+
+       This wait time is automatically enforced on a WRITE command.
+       Multiple WRITE commands can therefore be issued sequentially, and
+       the appropriate waits will be automatically inserted.
+
+       Note that while this command is required and must therefore
+       always be read by a programmer, its value is irrelevant when the
+       TPROGF command is implemented.
+
+  TPROGF: 83 <ticks16>
+       (Version 29, optional)
+
+       Sets the "fast" proramming wait time.  This allows describing
+       programming wait times with a finer resolution than the TPROG
+       command may allow.  If the program wait time is too long for
+       65534 fast ticks, then this value must be set to 65535.
+
+       The host must set wait times with both TPROG and TPROGF when
+       implemented.  The programmer can chose which to use.
+
+       When this command is implemented, the FTICKF command must also be
+       implemented.  That command provides the frequency of the clock of
+       which ticks will be counted.
+
+       The TICKS16 is the 16 bit total number of ticks to wait.
+
+  FTICKF: 84
+       RSP: freq32
+       (Version 29, optional, required if TPROGF implemented)
+
+       Gets the frequency of ticks used by the TPROGF command.  This
+       command is required if TPROGF is implemented.
+
+       FREQ32 is the frequency as a 32 bit unsigned integer in Hz
+       divided by 256 (shifted right 8 bits).  For example, a FREQ32
+       value of 00012345h represents a frequency of 1234500h, which is
+       19.088640 MHz.  The tick period is therefore about 52.39 ns.
+
+  SPPROG: 32
+
+       Select the program memory space for subsequent read and write
+       operations.  This is the default after a RESET command.
+
+  SPDATA: 33
+
+       Select the data memory space (data EEPROM) for subsequent read and
+       write operations.
+
+  INCADR: 34
+
+       Increment the target address of the next operation by 1.
+
+  ADRINV: 35
+
+       Invalidate the firmware copy of the current address that the target
+       chip is set to.  The address will be deliberately set in the target
+       chip before the next operation that assumes an address.
+
+       The firmware automatically tracks the target chip address when high
+       level read/write operations are performed.  However, the firmware
+       can not track the target chip address when the host directly
+       performs low level operations (SEND1, RECV1, etc) on the target
+       chip.  The ADRINV command should be issued by the host after
+       performing low level operations that modify the current address in
+       the target chip.
+
+  PAN18: 36 <data 0> ... <data 7>
+       (required in versions 1-9, optional from version 10 on)
+
+       Write one buffer of 8 bytes to a program memory panel.  This is a
+       specialized command that must only be used if the target chip
+       supports 8 byte panel writes (like the 18Fxx2 for example), and the
+       chip is properly set up.  The write will start at the current
+       target address, which must be 8-byte aligned (low 3 bits zero).
+       The desired target address will be advanced by 8 by this command.
+       Successive 8 byte panel writes can therefore be performed with only
+       a stream of PAN18 commands.  The wait time set by the TPROG command
+       will be automatically inserted to allow the write operation to
+       complete.
+
+       This command starts a buffered write, writes the data to the write
+       buffer, and then performs the write.  It can only be used if the
+       write buffer is exactly 8 bytes in size.  If not then the commands
+       PANST, PAN8NW, and PAN8WR must be used.
+
+  RBYTE8: 37
+       RSP: <data 0> ... <data 7>
+
+       Read 8 consecutive words and return their low bytes.  The first
+       byte will be read from the desired target address when the command
+       is run.  The desired target address will be left at the next word
+       after the last one that was read.
+
+       The purpose of this command is to provide a faster means of reading
+       large memory areas when the target word size is 8 bits or less.
+
+  WRITING: 38
+
+       Indicate that the target chip is being written to.  This causes the
+       status LED to indicating writing for at least the next 250 ms.  If
+       multiple WRITING commands are issued less than 250 ms apart, then
+       the status LED will indicate the target is being written to
+       continuously.
+
+       The WRITING state is indicated automatically when higher level
+       write commands are used.  However, low level commands (like SEND
+       and RECV) can be used to write to the target.  The LED is not set
+       to WRITING status by these commands since they can be used for
+       other purposes.  The WRITING command provides a means to set the
+       LED to WRITING status explicitly.
+
+  CHKCMD: 41 <cmd>
+       RSP: <data>
+       (Version 5)
+
+       Checks whether a particular command is available.  CMD is the
+       command opcode inquiring about, and DATA is returned 0 if the
+       command is not available and 1 if it is.
+
+       The intent of this command is to provide an easier mechanism for
+       host software to determine whether a particular command may be used
+       than to have a list of allowable commands for each version as
+       reported by the CVLO and CVHI return values of the FWINFO command.
+       Some commands are optional, and the CHKCMD command is the only
+       means to determine their availability.
+
+       It is recommended that the CHKCMD be used to determine the
+       avaiability of all commands if the firmware reports compatibility
+       with spec version 5 or higher, even though some commands must
+       always be present at certain spec versions.
+
+  GETPWR: 42
+       RSP: <i16 millivolts>
+       (Version 6, optional)
+
+       Get the internal voltage used to power the processor running the
+       control firmware.  This is not the target chip Vdd level.
+
+       The return argument is an unsigned 16 bit value in units of
+       millivolts.  Note that units of millivolts is used for
+       communications purposes only, and does not imply the actual
+       resolution or accuracy.  Consult the documentation for the
+       particular firmware or unit for accuracy and resolution values.
+
+  GETVDD: 43
+       RSP: <i16 millivolts>
+       (Version 6, optional)
+
+       Get the measured target chip Vdd (power) voltage.
+
+       The return argument is an unsigned 16 bit value in units of
+       millivolts.  Note that units of millivolts is used for
+       communications purposes only, and does not imply the actual
+       resolution or accuracy.  Consult the documentation for the
+       particular firmware or unit for accuracy and resolution values.
+
+  GETVPP: 44
+       RSP: <i16 millivolts>
+       (Version 6, optional)
+
+       Get the measured target chip Vpp (programming) voltage.
+
+       The return argument is an unsigned 16 bit value in units of
+       millivolts.  Note that units of millivolts is used for
+       communications purposes only, and does not imply the actual
+       resolution or accuracy.  Consult the documentation for the
+       particular firmware or unit for accuracy and resolution values.
+
+  WAITCHK: 45
+       RSP: <flags>
+       (Version 7, optional)
+
+       Wait for any currently scheduled wait interval to elapse and
+       check for errors.
+
+       The returned FLAGS byte is zero when no errors or exception
+       conditions occurred.  The meaning of the individual bits are:
+
+           7       6       5       4       3       2       1       0
+       -----------------------------------------------------------------
+       |       |       |       |       |       |       |       |       |
+       |   X   |   X   |   X   |   X   |  VPPH |  VPPL |  VDDH |  VDDL |
+       |       |       |       |       |       |       |       |       |
+       -----------------------------------------------------------------
+
+       VDDL is set if the target chip Vdd voltage was still too low
+       when the wait timeout expired.
+
+       VDDH is set if the target chip Vdd voltage was still too high
+       when the wait timeout expired.
+
+       VPPL is set if the target chip Vpp voltage was still too low
+       when the wait timeout expired.
+
+       VPPH is set if the target chip Vpp voltage was still too high
+       when the wait timeout expired.
+
+       X indicates a reserved bit.  These are sent as 0 in this version
+       of the spec, but may be defined in future versions.
+
+  GETBUTT: 46
+       RSP: <npress>
+       (Version 8, optional)
+
+       Returns the number of user button presses since power up modulo
+       256.  This value is only reset to 0 by power down.  It is
+       uneffected by all other commands, the host input stream timeout,
+       and the like.
+
+  APPLED: 47 <bri> <phase 1 5 ms> <phase 2 5 ms>
+       (Version 8, optional)
+
+       Sets the display on the "App" LED.  The LED will alternate between
+       two display phases.  The brightness and duration of each phase can
+       be set.  This command resets the display to the beginning of phase
+       1.
+
+       BRI contains the 0-15 brightness for phase 1 in the low 4 bits and
+       the 0-15 brightness for phase 2 in the high 4 bits.  Brightness of
+       0 is completely off, and 15 is maximum.
+
+       The remaining two parameter bytes set the time duration for phase 1
+       and phase 2 respsectively.  Each is an unsigned byte in units of
+       5 ms.
+
+       If it is not desired to have the LED flash, then set both
+       brightness values the same.  The phase times become irrelevant in
+       that case.
+
+       The "App" LED is physically closely associated with the user button
+       on the target unit when both are present.  The App LED can be used
+       as a prompt or confirmation of user button activity.
+
+  RUN: 48 <Vdd>
+       (Version 8, optional)
+
+       Reset the target PIC and then allow it to run.  After the reset,
+       the Vpp (MCLR), PGC, and PGD lines are set to high impedence, and
+       it is up to the target ciruit to drive them appropriately for the
+       application.  If the VDD parameter byte is 0, then the target Vdd
+       line is also set to high impedence.  If the VDD parameter byte is
+       1-250, the target Vdd line is driven to that value times 24 mV.  In
+       other words, VDD of 0-250 maps to 0.0-6.0 volts, except that VDD of
+       0 is a special case where the target Vdd line is not driven at all.
+
+       The host timeout is disabled by this command, and re-enabled when
+       the next command is received.  This means an application can enter
+       RUN mode and exit without the target system being automatically
+       reset 5 seconds later.
+
+  HIGHZ: 49
+       (Version 9)
+
+       Set all the target PIC lines to high impedence to the extent
+       possible.  If the programmer is not capable of releasing a line,
+       then it should be set low.  In any case, the programmer must not
+       supply power or a high Vpp level.
+
+       In general, in-circuit programmers can set their lines to high
+       impedence since they are designed to operate with a wide range of
+       possible target circuits.  In-socket programmers generally
+       passively pull lines down to turn "off" the target chip.
+
+       The intent of this command is to make the programmer appear not
+       present to the target chip to the extent possible.  This is also
+       the power up state of the programmer, and the state it
+       automatically reverts to on a host input stream timout.  It is
+       always permissible to disconnect the target circuit or chip from
+       the programmer in this state.
+
+       Note that this command differs somewhat from the RUN 0 command.
+       First, the RUN command is only present if the programmer can
+       release all the lines.  Second, the RUN command always makes sure
+       the target chip is in a reset condition before entering the
+       requested state.  The HIGHZ command just releases all lines to the
+       extent it can from whatever state they were in.
+
+       The Embed Inc PIC programmers react to the HIGHZ command in the
+       following ways:
+
+            |  EasyProg            |  ProProg
+       -----|----------------------|-----------------------
+       Vpp  |  700 Ohms to ground  |  > 1 MOhm
+       Vdd  |  360 Ohms to ground  |  > 10 kOhms to ground
+       PGC  |  2 kOhms to ground   |  >= 190 kOhms to ground
+       PGD  |  2 kOhms to ground   |  >= 19 kOhms to ground
+
+  NTOUT: 50
+       (Version 9)
+
+       Disable the command stream timeout (See Command Stream Timeout
+       section earlier in this document).  The timeout is automatically
+       re-enabled at the start of each command (whenever an ACK byte is
+       sent to the host).  This allows a program to exit but leave the
+       programmer in an unusual state indefinitely.  Since every command
+       implicitly re-enables the host timeout, this must be the last
+       command issued before exiting a program that intends to leave the
+       programmer in a non-default state.
+
+  GETCAP: 51 <capability ID> <data>
+       RSP: <capability level>
+       (Version 10, optional)
+
+       This command allows the host to inquire about specific capabilities
+       of the programmer unit.  Certain programmer capabilities were
+       implied in previous spec versions, such as variable Vdd output,
+       that might be burdensome to some programmer implementations.  Some
+       of these restrictions are relaxed in specification version 10.  The
+       GETCAP command is not required, but the capabilities listed as
+       default must then be implemented.  If any default capabilities are
+       not implemented, then the programmer must otherwise support
+       specification version 10 at minimum and must implement the GETCAP
+       command.
+
+       A response byte value of 0 always indicates the default capability
+       level.  This is also the implied capability level when the GETCAP
+       command is not implemented.  The meanings of response byte values
+       1-255 depend on the capability that was inquired about.
+
+       All possible values of CAPABILITY ID are legal even though many are
+       not implemented.  The programmer must always return 0 for any
+       unimplmented capability ID.  Since 0 indicates the default
+       capability, this allows new capabilities to be added but older
+       firmware to still be compatible.  The default for any such new
+       capabilities will be "not implemented".  Old firmware will
+       therefore automatically report any newly defined capabilities as
+       not being implemented.
+
+       The meaning of the optional data byte following the capability ID
+       is dependent on the capability ID.  This byte is ignored for
+       unimplemented capability IDs since 0 is always returned.
+
+       The capability IDs and the meaning of their response bytes are:
+
+       0 0: Variable Vdd
+
+            Responses are:
+
+            0    Variable Vdd from 0 to 6 volts is implemented.
+
+            1    Variable Vdd is not implemented.  The VDDVALS and VDD
+                 commands are ignored if present.  If the commands
+                 VDDLOW and VDDHIGH are implemented, they function as
+                 VDDNORM.
+
+       0 1: Fixed Vdd level
+
+            The fixed Vdd level if variable Vdd is not implemented.  This
+            value has no meaning unless the response to 0,0 is 1, meaning
+            the programmer implements fixed Vdd.  The 0-255 return value
+            is the voltage in the range of 0 to 6 volts.  This is the same
+            encoding as used by the VDD command.
+
+       1 <reset ID>: Reset IDs
+
+            The data byte is the reset algorithm ID.  Note that this is
+            not the same as the data byte passed to the IDRESET command
+            starting with spec version 18.  Responses are:
+
+            0    Indicates implemented for reset IDs 0-3, unimplemented
+                 for all others.  Since IDs 0-2 are required, this
+                 value is always returned for data bytes 0-2.
+
+            1    Indicates unimplemented for reset IDs 0-3, implemented
+                 for all others.
+
+       2 <write ID>: Write IDs
+
+            The data byte is the same as the data byte of an IDWRITE
+            command.  Responses are:
+
+            0    Indicates implemented for write IDs 0-3, unimplemented
+                 for all others.
+
+            1    Indicates unimplemented for write IDs 0-3, implemented
+                 for all others.
+
+       3 <read ID>: Read IDs
+
+            The data byte is the same as the data byte of an IDREAD
+            command.  Responses are:
+
+            0    Indicates implemented for read IDs 0-3, unimplemented
+                 for all others.
+
+            1    Indicates unimplemented for read IDs 0-3, implemented
+                 for all others.
+
+       4 0: Vpp minimum
+
+            Inquires the minimum Vpp level (when enabled) the
+            programmer can be set to.  Responses are:
+
+            0    Vpp level is fixed at 13V and can not be changed.
+
+            1-255  Minimum Vpp level on 0-20V scale.  This value is in
+                 the same units as the parameter to the VPP command.
+
+       4 1: Vpp maximum
+
+            Inquires the maximum Vpp level (when enabled) the
+            programmer can be set to.  Responses are:
+
+            0    Vpp level is fixed at 13V and can not be changed.
+
+            1-255  Maximum Vpp level on 0-20V scale.  This value is in
+                 the same units as the parameter to the VPP command.
+
+  W30PGM: 56 <word24 0> <word24 1> <word24 2> <word24 3>
+       (Version 11, optional)
+
+       Write 4 program memory words to a dsPIC target.  This is a
+       specialized command that must only be used if the target chip is a
+       dsPIC, program memory space is selected, and the target is
+       otherwise set up and in programming mode.
+
+       The write will start at the current target address, which must be a
+       multiple of 8 (low 3 address bits zero).  The current address will
+       be updated to the next address after the last written by this
+       command.  The address will be advanced by 8 since there are two
+       addresses per program memory word.  The first address of a program
+       memory word refers to the low 16 bits, and the second to the high 8
+       bits.
+
+       This command must always be used to write an entire block of WBUFSZ
+       addresses.  Note that this is WBUFSZ/2 program memory words since
+       each 24 bit program memory word occupies two addresses.  No other
+       commands are allowed during the writing of a whole block.  The
+       entire block must be aligned starting at a multiple of WBUFSZ
+       addresses.  The first WBUFSZ/8 - 1 commands of the block only load
+       the program memory write latches.  The last command of the block
+       loads the write latches with the data words of that command too,
+       but also performs the actual write of the entire block of WBUFSZ/2
+       words to program memory.  The results of this command are undefined
+       if it is not used WBUFSZ/8 times in succession to program a block
+       of WBUFSZ/2 words as described.
+
+       The program operation does not perform an erase, and can only set 1
+       bits to 0.  Therefore it is possible to modify only part of a block
+       of 32 words by setting all the bits to remain unchanged to 1.  This
+       also means that it is up to the application to ensure a block is
+       erased before programming if attempting to load arbitrary values
+       into the block.
+
+       If this command and write ID 4 are both implemented, then write ID
+       4 is not required to function correctly for ordinary program
+       memory.  An application must therefore check for the presence of
+       this command and use it exclusively to write to program memory when
+       it is implemented, whether write ID 4 is implemented or not.
+
+  TEST2: 57 <dat>
+       RSP: <dat0> <dat1> <dat2> <dat3>
+       (Version 11, optional)
+
+       This command is reserved for debugging firmware.  It is re-written
+       as needed, and therefore has no fixed definition.  It is not
+       intended for normal operation, and its results are undefined, other
+       than it must accept one byte of data and return 4 bytes of data.
+
+  R30PGM: 58
+       RSP: :<word24 0> <word24 1>
+       (Version 11, optional)
+
+       Read 2 program memory words from a dsPIC target.  This is a
+       specialized command that must only be used if the target chip is a
+       dsPIC, program memory space is selected, and the target is
+       otherwise set up and in programming mode.
+
+       The read will start at the current address, which must a multiple
+       of 4 (low 2 address bits zero).  The current address will be
+       updated to the next address after the last read by this command.
+       The address will be advanced by 4 since there are two addresses per
+       program memory word.  The first address of a program memory word
+       refers to the low 16 bits, and the second to the high 8 bits.
+
+       If this command and read ID 4 are both implemented, then read ID 4
+       is not required to function correctly for ordinary program memory.
+       An application must therefore check for the presence of this
+       command and use it exclusively to read from program memory when it
+       is implemented, whether read ID 4 is implemented or not.
+
+  DATADR: 59 <adr24>
+       (Version 11, optional)
+
+       Define a starting address for data EEPROM.  For most PIC types, the
+       method for accessing the first and subsequent locations of data
+       EEPROM memory are fixed.  This command is not needed for those PIC
+       types, and may be ignored by the programmer in those cases.
+
+       Data EEPROM is really a separate memory that is in a separate
+       address space on some PICs, and mapped to an existing address space
+       on others.  The ADR24 parameter is meant to indicate the "starting
+       address", although that may be interpreted differently for
+       different PIC types.
+
+       The meaning of the ADR24 parameter for each of the PIC types that
+       require this command be used is given below.  If a PIC type is not
+       listed, then this command is not needed for that PIC type, and may
+       be ignored by the programmer.
+
+       dsPIC:
+
+            ADR24 is the program space address where the first EEPROM word
+            is mapped.  The last EEPROM word is always mapped to 7FFFFEh,
+            and the starting address depends on the number of EEPROM words
+            implemented.  ADR24 should be set to 800000h for PICs that
+            have no data EEPROM.
+
+       12 bit core:
+
+            Program memory address where the start of non-volatile data
+            memory is mapped.  This only needs to be set for 12 bit core
+            devices that have non-volatile data memory.
+
+       There is no guaranteed default value.  This command must be used
+       for any of the PIC types listed above, unless otherwise noted.
+
+  NAMESET: 66 <len> <char1> ... <charN>
+       (Version 20, optional)
+
+       Set the non-volatile user assigned name for this programmer.  The
+       name is not used by the programer except to report it back when
+       asked.  This name is intended to distinguish multiple programmers
+       connected to a system or a common bus.  It is therefore strongly
+       recommended that each unit be given a unique name.
+
+       LEN indicates the number of characters in the name, with exactly
+       that many character bytes following.  All values of LEN (0-255) are
+       legal, and must always be followed by exactly LEN character bytes.
+       Programmers silently discard name characters past what they can
+       store, although the indicated number of characters must always be
+       read from the command stream.  If this command is implemented, the
+       programmer must store at least the first 15 name characters (the
+       name may not be truncated to less than 15 characters by the
+       programmer).
+
+       It may be necessary to issue the REBOOT command if the programmer
+       name is cached by the operating system.  This is the case, for
+       example, with the USBProg programmer communicating over the USB.
+
+  NAMEGET: 67
+       RSP: <len> <char1> ... <charN>
+       (Version 20, optional)
+
+       Return the non-volatile user assigned name for this programmer.
+       The return bytes have the same format as the data bytes for the
+       NAMESET command.  Only the stored name is returned, regardless of
+       how many characters were sent with the NAMESET command.
+
+  REBOOT: 68
+       (Version 21, optional)
+
+       Completely restart the control processor of the programmer.
+
+       Depending on the I/O connection type to the programmer, it may be
+       necessary to re-establish communication.  For example, if the
+       programmer is connected via the USB, then the REBOOT command will
+       make it appear as if it was unplugged then plugged back into the
+       USB.  This will cause all existing connections to it to be broken,
+       and the application must establish a new connection for further
+       communication.  Programmers connected via TCP will act similarly,
+       but RS-232 connections will stay open since the host operating
+       system can not detect the programmer reboot.
+
+       The purpose of this command is to force the operating system to
+       treat the programmer as a new device.  This is necessary if any
+       setting in the programmer was changed that is cached by the
+       operating system.  This is the case, for example, with the non-
+       volatile user assigned name string of the USBProg programmer when
+       connected via the USB.
+
+  TESTGET: 71
+       RSP: <test mode ID>
+       (Version 29, optional)
+
+       Returns the ID of the current test mode.  This command is required
+       if the TESTSET command is implemented.  See the TESTSET command
+       description for details on the test mode.
+
+  TESTSET: 72 <test mode ID>
+       (Version 29, optional)
+
+       Sets the new test mode according to the ID.  Test modes are
+       optional operating modes that may be useful during production, and
+       for diagnosing problems.  Test mode 255 is always normal end user
+       operation.  Test modes 0-254 are defined separately by each
+       programmer type.  The test mode setting may be non-volatile and may
+       require a REBOOT to take effect.  This is specific to each
+       programmer type.
+
+       If the TESTSET command is implemented, then the TESTGET command
+       must also be implemented.  If TESTSET is not implemented, then the
+       unit is permanently in end user operating mode.  In that case
+       TESTGET may be implemented, but if so it must always return 255.
+
+       The test modes of the Embed Inc programmers are listed below.  Any
+       Embed Inc programmer not listed does not have optional test modes
+       and therefore may not implement the TESTSET command.  Operation is
+       undefined if a undefined test mode is set.  Note that 255 is the
+       only test mode guaranteed to be defined for all programmers.  The
+       test modes of the Embed Inc programmers are:
+
+         LProg
+
+           The test mode is non-volatile.  A new setting does not take
+           effect until the next power up or REBOOT command.  The default
+           test mode specified in the HEX file is 255.  The test mode does
+           not effect USB communication.
+
+           0: Serial communication mode.  The TX and RX lines are the raw
+              micocontroller UART signals.  The serial communication
+              protocol described in this document is implemented except
+              that the baud rate is 19,200 instead of 115,200.  The RX
+              line is a CMOS input and should be externally driven so that
+              it does not float.
+
+           255: Normal operating mode.  The TX and RX lines are both held
+              low and implement no communication function.  Nothing should
+              be connected to these lines.
+
+  EECON1: 73 adr
+  EEADR:  74 adr
+  EEADRH: 75 adr
+  EEDATA: 76 adr
+  VISI: 77 adr
+  TBLPAG: 78 adr
+  NVMCON: 79 adr
+  NVMKEY: 80 adr
+  NVMADR: 81 adr
+  NVMADRU: 82 adr
+       (Version 29, optional)
+
+       Each of these commands defines the address in the target of the
+       special function register indicated by the command name.  These may
+       not be relevant to all PIC types.  These special function registers
+       can be at different addresses depending on the exact PIC model.
+
+       ADR is a 16 bit unsigned integer.
+
+       These values are reset to their defaults whenever the reset
+       algorithm ID is set.
+
+       The defaults are:
+
+         From original PIC 18:
+
+           EECON1   FA6h
+           EEADR    FA8h
+           EEADRH   FAAh
+           EEDATA   FA8h
+
+         From original dsPIC:
+
+           VISI     0784h
+           TBLPAG   0032h
+           NVMCON   0760h
+           NVMKEY   0766h
+           NVMADR   0762h
+           NVMADRU  0764h
+
+  SENDSER: 85 <n-1> <dat> ... <dat>
+       (Version 29, optional)
+
+       Sends bytes over the separate serial port of the programmer.  N is
+       the number of bytes to send.  Exactly N DAT bytes follow the <n-1>
+       byte.  All the DAT bytes will be transmitted over the serial port
+       in the same order as in this command.
+
+       Programmers are not required to have a separate serial port.  This
+       command is only allowed to be implemented when the programmer has a
+       serial port that is not being used to implement this command
+       protocol.
+
+       The serial port protocol is 115.2 kBaud, 8 data bits, 1 stop bit,
+       no parity bit.
+
+  RECVSER: 86
+       RSP: <n> <dat> ... <dat>
+       (Version 29, optional)
+
+       Gets any bytes received over the separate serial port of the
+       programmer since the last RECVSER command.  N is the number of data
+       bytes, followed by exactly that number of bytes.
+
+       Programmers are not required to have a separate serial port.  This
+       command is only allowed to be implemented when the programmer has a
+       serial port that is not being used to implement this command
+       protocol.
+
+       The serial port protocol is 115.2 kBaud, 8 data bits, 1 stop bit,
+       no parity bit.
+
+  SEND8M: 87 <data>
+       (Version 29, optional)
+
+       Sends the 8 bits of DATA to the target in most to least significant
+       byte order.
+
+  SEND24M: 88 <i24 data>
+       (Version 29, optional)
+
+       Sends the 24 bits of DATA to the target in most to least
+       significant byte order.
+
+  RECV24M: 89
+       RSP: <i24 data>
+       (Version 29, optional)
+
+       Reads 24 bits from the target in most to least significant byte
+       order.
+
+  Application specific commands: 240 - 255
+       (Version 27, optional)
+
+       These 16 commands are specifically not defined in this
+       specification.  Their purpose is to allow access to custom hardware
+       features.  Of course, general purpose software will not use these
+       features nor issue these commands.  These features may have nothing
+       to do with PIC programming, and may control other hardware
+       implemented in the same device.
+
+       All software that issues these commands must first verify they are
+       implemented by using the CHKCMD command, which must be implemented.
+       It is strongly recommended that custom software verify it is
+       communicating with the expected device before using these commands.
+       Each custom device should have a unique signature as reported by
+       the FWINFO and FWINFO2 commands.
+
+       While the meaning of these commands is up to the custom
+       implementation, the same overall framework of commands and
+       responses must still be followed.  If flow control is implemented
+       at the protocol level, then the ACK byte must be sent by the device
+       after it has read the opcode byte.  Response bytes, if any, must be
+       sent before the response bytes of any other command.
+
+       If the command response is variable length, then a particular
+       format must be followed.  The fixed bytes must be first, followed
+       by a length byte that indicates how many bytes follow.  Since the
+       length byte follows the fixed bytes, the length byte is always at a
+       known fixed offset into the response byte stream.  This also means
+       that there may be 0 to 255 bytes following the length byte,
+       depending on the value of the length byte.  There may only be at
+       most one such variable length field in each reponse.

@@ -3,18 +3,17 @@ define picprg_config;
 define picprg_config_idb;
 %include 'picprg2.ins.pas';
 {
-**************************************************************************
+********************************************************************************
 *
 *   Subroutine PICPRG_CONFIG (PR, NAME, STAT)
 *
-*   Configure the library to the specific target chip.  NAME is the
-*   expected name of the chip, which is case-insensitive.  Some very
-*   similar chips have the same device ID word, like the 16F628 and
-*   16LF628 for example.  If NAME is non-blank, then it must match one
-*   of the names for the device ID.  In that case, the library is
-*   configured to that particular variant.  If NAME is empty, then the
-*   generic variant for that device ID is chosen.  STAT is returned
-*   with an error if NAME is non-blank but does not match any of the
+*   Configure the library to the specific target chip.  NAME is the expected
+*   name of the chip, which is case-insensitive.  Some very similar chips have
+*   the same device ID word, like the 16F628 and 16LF628 for example.  If NAME
+*   is non-blank, then it must match one of the names for the device ID.  In
+*   that case, the library is configured to that particular variant.  If NAME is
+*   empty, then the generic variant for that device ID is chosen.  STAT is
+*   returned with an error if NAME is non-blank but does not match any of the
 *   variant names for the ID word received from the target chip.
 *
 *   The target chip will be reset and left enabled and ready for performing
@@ -111,16 +110,16 @@ done_name:                             {ID_P is pointing to ID block of selected
   picprg_reset (pr, stat);             {reset the chip and all optional state}
   end;
 {
-**************************************************************************
+********************************************************************************
 *
 *   Subroutine PICPRG_CONFIG_IDB (PR, IDB, IDNAME, STAT)
 *
-*   Configure the PICPRG library and the remote unit for the specific
-*   target PIC described in the ID block IDB.  IDNAME must be the ID name
-*   descriptor associated with this ID block of the particular variant
-*   to configure to.  The target chip will be reset and the target Vdd will
-*   be set to the normal level for this chip.  The target will be left
-*   ready for performing operations on it.
+*   Configure the PICPRG library and the remote unit for the specific target PIC
+*   described in the ID block IDB.  IDNAME must be the ID name descriptor
+*   associated with this ID block of the particular variant to configure to.
+*   The target chip will be reset and the target Vdd will be set to the normal
+*   level for this chip.  The target will be left ready for performing
+*   operations on it.
 }
 procedure picprg_config_idb (          {configure to target described in ID block}
   in out  pr: picprg_t;                {state for this use of the library}
@@ -1093,6 +1092,58 @@ picprg_picfam_16f182x_k: begin         {16F182x}
 
       pr.erase_p :=                    {install erase routine}
         univ_ptr(addr(picprg_erase_16f182x));
+      pr.write_p :=                    {install array write routine}
+        univ_ptr(addr(picprg_write_targw));
+      pr.read_p :=                     {install array read routine}
+        univ_ptr(addr(picprg_read_gen));
+      end;
+
+picprg_picfam_16f15313_k: begin        {8 bit opcodes, like 16F15313}
+      r := (idb.vppmin + idb.vppmax) / 2.0; {make desired Vpp voltage}
+      r := max(pr.fwinfo.vppmin, min(pr.fwinfo.vppmax, r)); {clip to programmer's range}
+      didit := false;                  {init to no reset algorithm selected}
+      if                               {programmer can do normal high voltage Vpp method ?}
+          pr.hvpenab and               {allowed by the user ?}
+          (r >= idb.vppmin) and (r <= idb.vppmax) and {prog can hit required Vpp range ?}
+          (picprg_reset_18f_k in pr.fwinfo.idreset) {can do required reset algorithm ?}
+        then begin
+          picprg_cmdw_idreset (pr, picprg_reset_18f_k, true, stat);
+          if sys_error(stat) then return;
+          didit := true;
+          end
+        else begin                     {can't do HVP, try key sequence method}
+          if                           {programmer can do key sequence prog entry method ?}
+              pr.lvpenab and           {allowed by the user ?}
+              (picprg_reset_16f182x_k in pr.fwinfo.idreset) {can do key sequence ?}
+              then begin
+            picprg_cmdw_idreset (pr, picprg_reset_16f182x_k, true, stat); {set key seq algorithm}
+            if sys_error(stat) then return;
+            if pr.fwinfo.cmd[61] then begin {prog has Vpp command ?}
+              picprg_cmdw_vpp (pr, idb.vdd.norm, stat); {set Vpp to Vdd level}
+              if sys_error(stat) then return;
+              end;
+            donevpp := true;           {Vpp config all set, don't try setting later}
+            didit := true;
+            end;
+          end
+        ;                              {done setting up reset algorithm}
+      if not didit then begin          {unable to find reset algorithm}
+        if (pr.hvpenab and pr.lvpenab) then goto not_implemented;
+        goto not_supp_opt;
+        end;
+
+      picprg_cmdw_idwrite (pr, picprg_write_16fb_k, stat);
+      if sys_stat_match (picprg_subsys_k, picprg_stat_writnimp_k, stat)
+        then goto not_implemented;
+      if sys_error(stat) then return;
+
+      picprg_cmdw_idread (pr, picprg_read_16fb_k, stat);
+      if sys_stat_match (picprg_subsys_k, picprg_stat_readnimp_k, stat)
+        then goto not_implemented;
+      if sys_error(stat) then return;
+
+      pr.erase_p :=                    {install erase routine}
+        univ_ptr(addr(picprg_erase_16fb));
       pr.write_p :=                    {install array write routine}
         univ_ptr(addr(picprg_write_targw));
       pr.read_p :=                     {install array read routine}

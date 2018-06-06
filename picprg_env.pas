@@ -216,6 +216,7 @@ begin
   string_appends (famnames, ' 12F1501'(0)); {31}
   string_appends (famnames, ' 18K80'(0)); {32}
   string_appends (famnames, ' 33EP'(0)); {33}
+  string_appends (famnames, ' 16F15313'(0)); {34}
 {
 *   Loop back here to read each new line from the environment file set.
 }
@@ -258,13 +259,14 @@ loop_line:
   string_token (buf, p, tk, stat);     {get ID namespace name string}
   string_upcase (tk);                  {make upper case for keyword matching}
   string_tkpick80 (tk,                 {pick namespace name from list}
-    '16 18 12 30',
+    '16 16B 18 12 30',
     pick);                             {number of name picked from the list}
   case pick of
 1:  idspace := picprg_idspace_16_k;
-2:  idspace := picprg_idspace_18_k;
-3:  idspace := picprg_idspace_12_k;
-4:  idspace := picprg_idspace_30_k;
+2:  idspace := picprg_idspace_16b_k;
+3:  idspace := picprg_idspace_18_k;
+4:  idspace := picprg_idspace_12_k;
+5:  idspace := picprg_idspace_30_k;
 otherwise
     goto err_parm;                     {invalid ID namespace name, parameter error}
     end;
@@ -297,6 +299,7 @@ otherwise
   idblock_p^.nprog := 0;
   idblock_p^.ndat := 0;
   idblock_p^.adrres := 0;
+  idblock_p^.adrreskn := true;
   idblock_p^.maskprg.maske := 0;
   idblock_p^.maskprg.masko := 0;
   idblock_p^.maskdat.maske := 0;
@@ -588,6 +591,12 @@ done_vdd:                              {done with all name tokens}
       idblock_p^.fam := picprg_picfam_33ep_k;
       idblock_p^.wblen := 16#F80000;
       end;
+34: begin
+      idblock_p^.fam := picprg_picfam_16f15313_k;
+      idblock_p^.wblen := 16#8000;
+      idblock_p^.adrres := 0;          {reset sets address to 0}
+      idblock_p^.adrreskn := true;
+      end;
 otherwise
     sys_stat_set (picprg_subsys_k, picprg_stat_badfam_k, stat);
     sys_stat_parm_vstr (tk, stat);
@@ -841,14 +850,24 @@ picprg_picfam_10f_k, picprg_picfam_12f_k: begin {12 bit core}
 {
 *********************
 *
-*   RESADR adr
+*   RESADR (adr | NONE)
 }
 23: begin
   if idblock_p = nil then goto err_noid; {no ID block currently open ?}
-
-  string_token_int (buf, p, i, stat);
+  string_token (buf, p, tk, stat);
   if sys_error(stat) then goto err_parm;
-  idblock_p^.adrres := i;
+  string_upcase (tk);
+  if string_equal (tk, string_v('NONE'(0)))
+    then begin                         {NONE}
+      idblock_p^.adrres := 0;
+      idblock_p^.adrreskn := false;
+      end
+    else begin                         {address}
+      string_t_int (tk, i, stat);
+      if sys_error(stat) then goto err_parm;
+      idblock_p^.adrres := i;
+      end
+    ;
   adrres_set := true;
   end;
 {

@@ -1,45 +1,41 @@
 {   Subroutine PICPRG_ID (PR, ID_P, IDSPACE, ID, STAT)
 *
-*   Determine or validate the hard coded ID of the target chip.  Some
-*   PICs have a unique hard-coded ID.  IDSPACE indicates the ID
-*   namespace, and ID is returned the raw ID value as hard coded into the
-*   chip.  Note that IDs are not unique accross namespaces, only within
-*   each namespace.  Different PICs have different sized ID words.  The
-*   ID word is returned in the least significant bits of ID with unused
-*   upper bits set to 0.
+*   Determine or validate the hard coded ID of the target chip.  Some PICs have
+*   a unique hard-coded ID.  IDSPACE indicates the ID namespace, and ID is
+*   returned the raw ID value as hard coded into the chip.  Note that IDs are
+*   not unique accross namespaces, only within each namespace.  Different PICs
+*   have different sized ID words.  The ID word is returned in the least
+*   significant bits of ID with unused upper bits set to 0.
 *
-*   If the target chip ID could not be determined, then IDSPACE is
-*   returned PICPRG_IDSPACE_UNK_K and ID is returned 0.  Possible causes
-*   for this include no chip in the socket, a chip with a programming
-*   algorithm not supported by this routine, or the particular target
-*   chip does not contain a device ID.
+*   If the target chip ID could not be determined, then IDSPACE is returned
+*   PICPRG_IDSPACE_UNK_K and ID is returned 0.  Possible causes for this include
+*   no chip in the socket, a chip with a programming algorithm not supported by
+*   this routine, or the particular target chip does not contain a device ID.
 *
-*   The target chip will be off (no power, no programming voltage) when
-*   this routine returns.  The RESET algorithm will be selected
-*   appropriately for the target chip when a valid ID is returned.
+*   The target chip will be off (no power, no programming voltage) when this
+*   routine returns.  The RESET algorithm will be selected appropriately for the
+*   target chip when a valid ID is returned.
 *
-*   ID_P may be passed in NIL or pointing to the ID block for a particular
-*   PIC.  If NIL, it must be possible to determine the identity of the
-*   target PIC by interacting with it.  An error is returned if ID_P is
-*   NIL and the target PIC identity could not be determined.  When returning
-*   without error, IDSPACE and ID will identify the specific target PIC.
-*   Note that it is not possible to uniquely identify all PICs by interacting
-*   with them.  PICs with the 12 bit core, for example, do not have unique
-*   IDs.
+*   ID_P may be passed in NIL or pointing to the ID block for a particular PIC.
+*   If NIL, it must be possible to determine the identity of the target PIC by
+*   interacting with it.  An error is returned if ID_P is NIL and the target PIC
+*   identity could not be determined.  When returning without error, IDSPACE and
+*   ID will identify the specific target PIC.  Note that it is not possible to
+*   uniquely identify all PICs by interacting with them.  PICs with the 12 bit
+*   core, for example, do not have unique IDs.
 *
-*   When ID_P is passed in pointing to the ID block of a specific PIC,
-*   then the existance of this PIC is verified to the extent possible.
-*   An error is returned only if it can be reliably determined that the
-*   target PIC does not adhere to the parameters in the ID block.  When
-*   not returning with an error, IDSPACE and ID will be copied from the
-*   information in the ID block.
+*   When ID_P is passed in pointing to the ID block of a specific PIC, then the
+*   existance of this PIC is verified to the extent possible.  An error is
+*   returned only if it can be reliably determined that the target PIC does not
+*   adhere to the parameters in the ID block.  When not returning with an error,
+*   IDSPACE and ID will be copied from the information in the ID block.
 *
-*   When this routine is called to verify a specific PIC (ID_P <> nil), then
-*   the library is configured to that PIC if it is not already.
+*   When this routine is called to verify a specific PIC (ID_P <> nil), then the
+*   library is configured to that PIC if it is not already.
 }
 module picprg_id;
 define picprg_id;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 
 procedure picprg_id (                  {get the hard coded ID of the target chip}
   in out  pr: picprg_t;                {state for this use of the library}
@@ -53,10 +49,11 @@ var
   resp: boolean;                       {a response was received from the target chip}
 
 label
-  done_18j, done_24h, done_33ep, done_16xxxx, done_16f72x, done_18lv, done_18k,
-  done_62x, done_16f18f, done_30f, have_idblock, wrongpic, leave;
+  done_18j, done_24h, done_33ep, done_16xxxx, done_16f72x, done_16fb, done_18lv,
+  done_18k, done_62x, done_16f18f, done_30f,
+  have_idblock, wrongpic, leave;
 {
-**************************************************************************
+****************************************
 *
 *   Local subroutine CONFIG (RES, VDD, VPP, STAT)
 *
@@ -91,7 +88,7 @@ otherwise
   picprg_cmdw_idreset (pr, res, vddvppoff, stat); {try to set the reset algorithm}
   end;
 {
-**************************************************************************
+****************************************
 *
 *   Local subroutine CHECK_16 (RESP, STAT)
 *
@@ -149,7 +146,65 @@ begin
   if sys_error(stat) then return;
   end;
 {
-**************************************************************************
+****************************************
+*
+*   Local subroutine CHECK_16B (RESP, STAT)
+*
+*   Check for target chip responds to the 8 bit programming commands for a PIC
+*   16.
+*
+*   RESP will be returned TRUE if it does and FALSE if it does not.  The target
+*   chip will be reset according to the current reset algorithm before an
+*   attempt is made to communicate with it.  The target chip will be left
+*   partway thru a programming command and should be reset before further
+*   attempts are made to communicate with it.
+}
+procedure check_16b (                  {check for response to 8 bit PIC 16 commands}
+  out     resp: boolean;               {TRUE iff received a response from the chip}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+begin
+  picprg_vddlev (pr, picprg_vdd_norm_k, stat); {configure for normal Vdd level}
+  if sys_error(stat) then return;
+  picprg_reset (pr, stat);             {reset the target chip}
+  if sys_error(stat) then return;
+{
+*   Send a READ DATA FROM NVM command and verify that the chip responds to it by
+*   driving and not driving the PGD line at appropriate places in the handshake.
+*
+*   Note that the PICPRG_SEND routine is used to send the opcode.  That routine
+*   sends in least to most significant bit order.  On the 16B PICs, data is sent
+*   in most to least significant bit order.  The opcode is therefore flipped.
+*   The opcode to read data from the target is FCh.  Flipping this around yields
+*   3Fh.
+}
+  picprg_send (pr, 7, 16#3F, stat);    {send all but last bit of opcode}
+  if sys_error(stat) then return;
+
+  picprg_cmdw_tdrive (pr, resp, stat); {check whether target is driving data line}
+  if sys_error(stat) then return;
+  if resp then begin                   {target driving PGD when it shouldn't be ?}
+    resp := false;                     {indicate not valid PIC 16 response}
+    return;
+    end;
+
+  picprg_send (pr, 1, 0, stat);        {send last bit of the opcode}
+  if sys_error(stat) then return;
+
+  picprg_cmdw_clkh (pr, stat);         {do clock pulse for dummy start bit}
+  if sys_error(stat) then return;
+  picprg_cmdw_clkl (pr, stat);
+  if sys_error(stat) then return;
+
+  picprg_cmdw_clkh (pr, stat);         {raise clock for first real data bit}
+  if sys_error(stat) then return;
+
+  picprg_cmdw_tdrive (pr, resp, stat); {check for target driving data line}
+  if sys_error(stat) then return;
+  end;
+{
+****************************************
 *
 *   Local subroutine CHECK_18 (RESP, STAT)
 *
@@ -189,7 +244,7 @@ begin
   if sys_error(stat) then return;
   end;
 {
-**************************************************************************
+****************************************
 *
 *   Local subroutine CHECK_30 (RESP, STAT)
 *
@@ -246,7 +301,7 @@ begin
   if sys_error(stat) then return;
   end;
 {
-**************************************************************************
+****************************************
 *
 *   Local subroutine GETID_16 (ID, STAT)
 *
@@ -305,7 +360,49 @@ begin
   id := lshft(ii, 14) ! jj;            {return data from both ID words}
   end;
 {
-**************************************************************************
+****************************************
+*
+*   Local subroutine GETID_16B (ID, STAT)
+*
+*   Get the chip ID using the 8 bit PIC 16 command set and assuming the
+*   current reset algorithm selection is appropriate.
+*
+*   These parts have the ID word at 8006h, and a revision word at 8005h.  We
+*   return the ID in the high 14 bits and the revision in the low 14 bits.
+}
+procedure getid_16b (                  {get ID using 8 bit PIC 16 prog commands}
+  out     id: picprg_chipid_t;         {returned chip ID in low bits, 0 = none}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+var
+  ii, jj: sys_int_machine_t;           {scratch integers and loop counter}
+
+begin
+  id := 0;                             {init to not returning with valid ID}
+
+  picprg_reset (pr, stat);             {reset the target chip}
+  if sys_error(stat) then return;
+
+  picprg_cmdw_send8m (pr, 16#80, stat); {set address to revision word}
+  if sys_error(stat) then return;
+  picprg_send16mss24 (pr, 16#8005, stat);
+  if sys_error(stat) then return;
+
+  picprg_cmdw_send8m (pr, 16#FE, stat); {read revision word into II, inc address}
+  if sys_error(stat) then return;
+  picprg_recv14mss24 (pr, ii, stat);
+  if sys_error(stat) then return;
+
+  picprg_cmdw_send8m (pr, 16#FC, stat); {read ID word into JJ}
+  if sys_error(stat) then return;
+  picprg_recv14mss24 (pr, jj, stat);
+  if sys_error(stat) then return;
+
+  id := lshft(jj, 14) ! ii;            {return combined ID and revision}
+  end;
+{
+****************************************
 *
 *   Local subroutine GETID_18 (ID, STAT)
 *
@@ -336,7 +433,7 @@ begin
   id := i1 ! lshft(i2, 8);
   end;
 {
-**************************************************************************
+****************************************
 *
 *   Local subroutine GETID_30 (ID, VISI, TBLPAG, STAT)
 *
@@ -418,7 +515,7 @@ begin
   id := id ! lshft(i32, 16);           {merge to make full chip ID}
   end;
 {
-**************************************************************************
+****************************************
 *
 *   Start of main routine.
 }
@@ -511,6 +608,20 @@ done_16xxxx:
     end;
 *)
 done_16f72x:
+
+  config (picprg_reset_62x_k, 3.3, 8.5, stat); {select reset method and voltages}
+  if sys_error(stat) then goto done_16fb; {this PIC type not supported by programmer}
+  check_16b (resp, stat);              {check for response to readback command}
+  if sys_error(stat) then return;
+  if resp then begin                   {a response was received from the chip ?}
+    getid_16b (id, stat);              {try to read the chip ID}
+    if sys_error(stat) then return;
+    if id <> 0 then begin              {got the ID ?}
+      idspace := picprg_idspace_16b_k; {indicate PIC16 ID namespace}
+      goto leave;
+      end;
+    end;
+done_16fb:
 
   config (picprg_reset_18f_k, 3.3, 8.5, stat); {select reset method and voltages}
   if sys_error(stat) then goto done_18lv; {this PIC type not supported by programmer}
@@ -611,8 +722,8 @@ done_30f:
 ********************
 *
 *   ID_P is pointing to the ID block of a specific PIC.  Look for any evidence
-*   that the target PIC is not the same as described in the ID block.  If
-*   so, then this routine will return with error status.
+*   that the target PIC is not the same as described in the ID block.  If so,
+*   then this routine will return with error status.
 }
 have_idblock:
   if pr.id_p <> id_p then begin        {not currently configured for this PIC ?}
@@ -648,6 +759,18 @@ picprg_idspace_16_k: begin
         then goto wrongpic;
       end
     ;
+  end;
+{
+*   PIC 16 using 8 bit programming opcodes.
+}
+picprg_idspace_16b_k: begin
+  check_16b (resp, stat);              {check for responds to the right read command}
+  if sys_error(stat) then return;
+  if not resp then goto wrongpic;
+  getid_16b (id, stat);                {read the chip ID}
+  if sys_error(stat) then return;
+  if (id & id_p^.mask) <> id_p^.id     {check the device ID bits only}
+    then goto wrongpic;
   end;
 {
 *   16 bit core of 18 family.

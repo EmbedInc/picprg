@@ -19,6 +19,7 @@ call src_pas picprg picprg_10 %1
 call src_pas picprg picprg_12 %1
 call src_pas picprg picprg_12f6 %1
 call src_pas picprg picprg_16 %1
+call src_pas picprg picprg_16fb %1
 call src_pas picprg picprg_18 %1
 call src_pas picprg picprg_30 %1
 call src_pas picprg picprg_close %1

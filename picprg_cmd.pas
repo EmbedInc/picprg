@@ -12,9 +12,9 @@ define picprg_cmd_expect;
 define picprg_send_cmd;
 define picprg_wait_cmd;
 define picprg_wait_cmd_tout;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 {
-*******************************************************************************
+********************************************************************************
 *
 *   Subroutine PICPRG_INIT_CMD (CMD)
 *
@@ -40,7 +40,7 @@ begin
 *
 *   Subroutine PICPRG_CMD_START (PR, CMD, OPC, STAT)
 *
-*   Start for sending a command.  The command descriptor CMD is initialize and
+*   Start for sending a command.  The command descriptor CMD is initialized and
 *   the command opcode is set to OPC.  STAT is returned PICPRG_STAT_CMDNIMP_K if
 *   the command OPC is not implemented in this firmware.
 }
@@ -61,7 +61,7 @@ begin
       or else not pr.fwinfo.cmd[opc]   {this opcode not implemented ?}
       then begin
     sys_stat_set (picprg_subsys_k, picprg_stat_cmdnimp_k, stat);
-    string_f_int (tk, opc);
+    string_f_int (tk, opc);            {make name from opcode number}
     sys_stat_parm_vstr (tk, stat);     {pass the illegal opcode name}
     return;
     end;
@@ -91,7 +91,7 @@ begin
   cmd.send.buf[cmd.send.nbuf] := val & 255; {append to command output bytes}
   end;
 {
-*******************************************************************************
+********************************************************************************
 *
 *   Subroutine PICPRG_ADD_I16U (CMD, VAL)
 *
@@ -108,7 +108,7 @@ begin
   picprg_add_i8u (cmd, rshft(val, 8) & 255); {add the high byte}
   end;
 {
-*******************************************************************************
+********************************************************************************
 *
 *   Subroutine PICPRG_ADD_I24U (CMD, VAL)
 *
@@ -126,7 +126,7 @@ begin
   picprg_add_i8u (cmd, rshft(val, 16) & 255); {add the high byte}
   end;
 {
-*******************************************************************************
+********************************************************************************
 *
 *   Subroutine PICPRG_ADD_I32U (CMD, VAL)
 *
@@ -171,12 +171,12 @@ begin
 *
 *   Subroutine PICPRG_SEND_CMD (PR, CMD, STAT)
 *
-*   Send a command to the remote system.  This routine will wait, if
-*   necessary, until it is permissible to send another command to the
-*   remote system.  This routine will only send the command without
-*   waiting for the response.  CMD is the command descriptor, which
-*   must already be set up.  The CMD.DONE event will be signalled
-*   asynchronously when the response has been received for the command.
+*   Send a command to the remote system.  This routine will wait, if necessary,
+*   until it is permissible to send another command to the remote system.  This
+*   routine will only send the command without waiting for the response.  CMD is
+*   the command descriptor, which must already be set up.  The CMD.DONE event
+*   will be signalled asynchronously when the response has been received for the
+*   command.
 }
 procedure picprg_send_cmd (            {send a command to the remote unit}
   in out  pr: picprg_t;                {state for this use of the library}
@@ -241,19 +241,19 @@ begin
     end;
   end;
 {
-*******************************************************************************
+********************************************************************************
 *
 *   Subroutine PICPRG_WAIT_CMD_TOUT (PR, CMD, TOUT, STAT)
 *
 *   Wait for the command CMD to complete within TOUT seconds.  All system
-*   resources allocated to the command will be released.  If the response
-*   is received within the timeout, then all the response bytes will be in
-*   the input buffer.  If the timeout elapses before all response bytes
-*   are received, then STAT will be set to PICPRG_STAT_NRESP_K status and
-*   the response data returned in CMD will be invalid.
+*   resources allocated to the command will be released.  If the response is
+*   received within the timeout, then all the response bytes will be in the
+*   input buffer.  If the timeout elapses before all response bytes are
+*   received, then STAT will be set to PICPRG_STAT_NRESP_K status and the
+*   response data returned in CMD will be invalid.
 *
-*   This routine must be called after the command is sent to the remote
-*   unit.  It may only be called once per command.
+*   This routine must be called after the command is sent to the remote unit.
+*   It may only be called once per command.
 }
 procedure picprg_wait_cmd_tout (       {wait for command to complete or timeout}
   in out  pr: picprg_t;                {state for this use of the library}
@@ -305,13 +305,11 @@ begin
   sys_event_del_bool (cmd.done);       {delete the system event}
   end;
 {
-*******************************************************************************
+********************************************************************************
 *
 *   Subroutine PICPRG_WAIT_CMD (PR, CMD, STAT)
 *
-*   Wait for the command CMD to complete using the default timeout.  This is
-*   a special case of PICPRG_WAIT_CMD_TOUT, above, where the timeout wait
-*   interval is set to infinite.
+*   Wait for the command CMD to complete using the default timeout.
 }
 procedure picprg_wait_cmd (            {wait for a command to complete}
   in out  pr: picprg_t;                {state for this use of the library}

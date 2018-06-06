@@ -90,6 +90,9 @@ define picprg_rsp_tprogf;
 define picprg_rsp_ftickf;
 define picprg_rsp_sendser;
 define picprg_rsp_recvser;
+define picprg_rsp_send8m;
+define picprg_rsp_send24m;
+define picprg_rsp_recv24m;
 
 %include 'picprg2.ins.pas';
 {
@@ -1879,4 +1882,67 @@ begin
   for ii := 1 to nbytes do begin       {copy the bytes into DAT}
     dat[ii - 1] := cmd.recv.buf[ii + 1];
     end;
+  end;
+{
+*******************************************************************************
+}
+procedure picprg_rsp_send8m (          {wait for SEND8M command completion}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in out  cmd: picprg_cmd_t;           {info about the command, returned invalid}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+begin
+  if cmd.send.buf[1] <> ord(picprg_cop_send8m_k) then begin
+    sys_stat_set (picprg_subsys_k, picprg_stat_wrongrsp_k, stat);
+    sys_stat_parm_str ('SEND8M', stat);
+    sys_stat_parm_int (cmd.send.buf[1], stat);
+    return;
+    end;
+
+  picprg_wait_cmd (pr, cmd, stat);     {wait for whole response, close CMD}
+  end;
+{
+*******************************************************************************
+}
+procedure picprg_rsp_send24m (         {wait for SEND24M command completion}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in out  cmd: picprg_cmd_t;           {info about the command, returned invalid}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+begin
+  if cmd.send.buf[1] <> ord(picprg_cop_send24m_k) then begin
+    sys_stat_set (picprg_subsys_k, picprg_stat_wrongrsp_k, stat);
+    sys_stat_parm_str ('SEND24M', stat);
+    sys_stat_parm_int (cmd.send.buf[1], stat);
+    return;
+    end;
+
+  picprg_wait_cmd (pr, cmd, stat);     {wait for whole response, close CMD}
+  end;
+{
+*******************************************************************************
+}
+procedure picprg_rsp_recv24m (         {wait for RECV24M command completion}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in out  cmd: picprg_cmd_t;           {info about the command, returned invalid}
+  out     dat: sys_int_conv32_t;       {returned bits, received MSB to LSB order}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+begin
+  if cmd.send.buf[1] <> ord(picprg_cop_recv24m_k) then begin
+    sys_stat_set (picprg_subsys_k, picprg_stat_wrongrsp_k, stat);
+    sys_stat_parm_str ('RECV24M', stat);
+    sys_stat_parm_int (cmd.send.buf[1], stat);
+    return;
+    end;
+
+  picprg_wait_cmd (pr, cmd, stat);     {wait for whole response, close CMD}
+
+  dat :=
+    cmd.recv.buf[1] !
+    lshft(cmd.recv.buf[2], 8) !
+    lshft(cmd.recv.buf[3], 16);
   end;

@@ -95,7 +95,10 @@ type
     picprg_cop_tprogf_k = 83,          {set programming time in fast ticks}
     picprg_cop_ftickf_k = 84,          {get fast tick frequency}
     picprg_cop_sendser_k = 85,         {send bytes out the serial data port}
-    picprg_cop_recvser_k = 86);        {get unread bytes from serial data port}
+    picprg_cop_recvser_k = 86,         {get unread bytes from serial data port}
+    picprg_cop_send8m_k = 87,          {send 8 bits, MSB first}
+    picprg_cop_send24m_k = 88,         {send 24 bits, MSB first}
+    picprg_cop_recv24m_k = 89);        {receive bits, MSB first}
 
   picprg_rsp_k_t = (                   {special response codes}
     picprg_rsp_ack_k = 1);             {command opcode received, OK to send next}
@@ -243,6 +246,11 @@ procedure picprg_erase_16f182x(        {erase routine for 16F182x}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
+procedure picprg_erase_16fb(           {erase routine for 16F15313 and related}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
 procedure picprg_erase_12f1501(        {erase routine enhanced 14 bit core, no EEPROM}
   in out  pr: picprg_t;                {state for this use of the library}
   out     stat: sys_err_t);            {completion status}
@@ -341,8 +349,16 @@ procedure picprg_read_18d (            {read routine for 18xxx data space}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
-procedure picprg_thread_in (           {root thread routine, receives from remote}
-  in out  pr: picprg_t);               {state for this use of the library}
+procedure picprg_recv8mss24 (          {receive 24 bit MSB-first word, get 8 bit payload}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     dat: sys_int_machine_t;      {returned 8 bit payload}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
+procedure picprg_recv14mss24 (         {receive 24 bit MSB-first word, get 14 bit payload}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     dat: sys_int_machine_t;      {returned 14 bit payload}
+  out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
 function picprg_sec_ticks (            {convert seconds to min clock ticks}
@@ -351,15 +367,27 @@ function picprg_sec_ticks (            {convert seconds to min clock ticks}
   :int32u_t;                           {min programmer ticks for SEC elapsed}
   val_param; extern;
 
+procedure picprg_send6 (               {send 6 bits of data to the target}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      dat: sys_int_conv16_t;       {the data word to send}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
+procedure picprg_send14mss24 (         {send 14 bits of data in 24 bit word, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      dat: sys_int_machine_t;      {data to send in the low 14 bits}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
 procedure picprg_send14ss (            {send 14 data bits with start/stop bits}
   in out  pr: picprg_t;                {state for this use of the library}
   in      dat: sys_int_conv16_t;       {the data word to send}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
-procedure picprg_send6 (               {send 6 bits of data to the target}
+procedure picprg_send16mss24 (         {send 16 bits of data in 24 bit word, MSB first}
   in out  pr: picprg_t;                {state for this use of the library}
-  in      dat: sys_int_conv16_t;       {the data word to send}
+  in      dat: sys_int_machine_t;      {data to send in the low 16 bits}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
@@ -403,6 +431,10 @@ procedure picprg_sys_usb_write (       {send data to a USBProg}
   in      buf: univ char;              {data to write}
   in      len: sys_int_adr_t;          {number of machine adr increments to write}
   out     stat: sys_err_t);            {completion status code}
+  val_param; extern;
+
+procedure picprg_thread_in (           {root thread routine, receives from remote}
+  in out  pr: picprg_t);               {state for this use of the library}
   val_param; extern;
 
 function picprg_volt_vdd (             {make internal Vdd value from volts}

@@ -88,6 +88,9 @@ define picprg_cmdw_tprogf;
 define picprg_cmdw_ftickf;
 define picprg_cmdw_sendser;
 define picprg_cmdw_recvser;
+define picprg_cmdw_send8m;
+define picprg_cmdw_send24m;
+define picprg_cmdw_recv24m;
 
 %include 'picprg2.ins.pas';
 {
@@ -1582,4 +1585,55 @@ begin
   picprg_cmd_recvser (pr, cmd, stat);  {send the command}
   if sys_error(stat) then return;
   picprg_rsp_recvser (pr, cmd, nbytes, dat, stat); {get the response}
+  end;
+{
+*******************************************************************************
+}
+procedure picprg_cmdw_send8m (         {send 8 bits to target, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      dat: sys_int_conv32_t;       {the data bits to send, MSB first}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+var
+  cmd: picprg_cmd_t;                   {info about the command being sent}
+
+begin
+  picprg_cmd_send8m (pr, cmd, dat, stat); {send the command}
+  if sys_error(stat) then return;
+  picprg_rsp_send8m (pr, cmd, stat);   {get the response}
+  end;
+{
+*******************************************************************************
+}
+procedure picprg_cmdw_send24m (        {send 24 bits to target, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      dat: sys_int_conv32_t;       {the data bits to send, MSB first}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+var
+  cmd: picprg_cmd_t;                   {info about the command being sent}
+
+begin
+  picprg_cmd_send24m (pr, cmd, dat, stat); {send the command}
+  if sys_error(stat) then return;
+  picprg_rsp_send24m (pr, cmd, stat);  {get the response}
+  end;
+{
+*******************************************************************************
+}
+procedure picprg_cmdw_recv24m (        {read 24 bits from the target, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     dat: sys_int_conv32_t;       {returned bits, received MSB to LSB order}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+var
+  cmd: picprg_cmd_t;                   {info about the command being sent}
+
+begin
+  picprg_cmd_recv24m (pr, cmd, stat);  {send the command}
+  if sys_error(stat) then return;
+  picprg_rsp_recv24m (pr, cmd, dat, stat); {get the response}
   end;

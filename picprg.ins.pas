@@ -126,6 +126,7 @@ type
     picprg_picfam_16f87xa_k,           {PIC 16F87xA}
     picprg_picfam_16f88x_k,            {PIC 16F88x}
     picprg_picfam_16f182x_k,           {PIC 16F182x}
+    picprg_picfam_16f15313_k,          {PIC 16F15313 and related}
     picprg_picfam_18f_k,               {generic 18F, like 18F452}
     picprg_picfam_18f2520_k,           {18F2520 and related}
     picprg_picfam_18f2523_k,           {18F2523 and related}
@@ -171,7 +172,8 @@ type
     picprg_write_16f88_k = 9,          {BEGIN PROG 24, END PROG 23}
     picprg_write_16f77_k = 10,         {BEGIN PROG 8, END PROG 14}
     picprg_write_16f88x_k = 11,        {BEGIN PROG 24, END PROG 10}
-    picprg_write_16f182x_k = 12);      {BEGIN PROG 24 END PROG 10, config: BEGIN PROG 8}
+    picprg_write_16f182x_k = 12,       {BEGIN PROG 24 END PROG 10, config: BEGIN PROG 8}
+    picprg_write_16fb_k = 13);         {8 bit programming opcodes, like 16F15313}
   picprg_write_t = set of bitsize 32 eletype picprg_write_k_t;
 
   picprg_read_k_t = (                  {IDs for the possible read algorithms}
@@ -181,7 +183,9 @@ type
     picprg_read_core12_k = 3,          {12 bit core devices}
     picprg_read_30f_k = 4,             {for 30F (dsPIC)}
     picprg_read_18fe_k = 5,            {generic 18F, both program and EEPROM space}
-    picprg_read_16fe_k = 6);           {enhanced (4 digit) 16F}
+    picprg_read_16fe_k = 6,            {enhanced (4 digit) 16F}
+    picprg_read_16fb_k = 7);           {enhanced 16F with 8 bit opcodes, like 16F15313}
+
   picprg_read_t = set of bitsize 32 eletype picprg_read_k_t;
 
   picprg_space_k_t = (                 {IDs for the different target address spaces}
@@ -191,6 +195,7 @@ type
   picprg_idspace_k_t = (               {name space for target chip ID in PICPRG.ENV}
     picprg_idspace_unk_k,              {ID space unknown}
     picprg_idspace_16_k,               {generic PIC16, 14 bit ID word}
+    picprg_idspace_16b_k,              {PIC 16 using 8 bit programming opcodes}
     picprg_idspace_18_k,               {generic PIC18, 16 bit ID word}
     picprg_idspace_12_k,               {generic 12 bit core, no chip ID}
     picprg_idspace_30_k);              {PIC 30 (dsPIC)}
@@ -313,6 +318,7 @@ type
     nvmadru: sys_int_machine_t;        {adr of NVMADRU reg}
     hdouble: boolean;                  {HEX file addresses doubled}
     eedouble: boolean;                 {EEPROM adressess in HEX file doubled beyond HDOUBLE}
+    adrreskn: boolean;                 {address is know after reset (is ADRRES value)}
     end;
 
   picprg_env_t = record                {all the info read from PICPRG.ENV file set}
@@ -876,6 +882,20 @@ procedure picprg_cmd_send4 (           {send up to 32 serial bits to the target}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
+procedure picprg_cmd_send8m (          {send 8 bits to target, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     cmd: picprg_cmd_t;           {info about the command in progress}
+  in      dat: sys_int_conv32_t;       {the data bits to send, MSB first}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
+procedure picprg_cmd_send24m (         {send 24 bits to target, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     cmd: picprg_cmd_t;           {info about the command in progress}
+  in      dat: sys_int_conv32_t;       {the data bits to send, MSB first}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
 procedure picprg_cmd_recv1 (           {read up to 8 serial bits from the target}
   in out  pr: picprg_t;                {state for this use of the library}
   out     cmd: picprg_cmd_t;           {info about the command in progress}
@@ -901,6 +921,12 @@ procedure picprg_cmd_recv4 (           {read up to 32 serial bits from the targe
   in out  pr: picprg_t;                {state for this use of the library}
   out     cmd: picprg_cmd_t;           {info about the command in progress}
   in      n: sys_int_machine_t;        {1-8 number of bits to read}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
+procedure picprg_cmd_recv24m (         {read 24 bits from the target, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     cmd: picprg_cmd_t;           {info about the command in progress}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
@@ -1454,6 +1480,18 @@ procedure picprg_rsp_send4 (           {wait for SEND4 command completion}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
+procedure picprg_rsp_send8m (          {wait for SEND8M command completion}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in out  cmd: picprg_cmd_t;           {info about the command, returned invalid}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
+procedure picprg_rsp_send24m (         {wait for SEND24M command completion}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in out  cmd: picprg_cmd_t;           {info about the command, returned invalid}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
 procedure picprg_rsp_recv1 (           {wait for RECV1 command completion}
   in out  pr: picprg_t;                {state for this use of the library}
   in out  cmd: picprg_cmd_t;           {info about the command, returned invalid}
@@ -1479,6 +1517,13 @@ procedure picprg_rsp_recv4 (           {wait for RECV4 command completion}
   in out  pr: picprg_t;                {state for this use of the library}
   in out  cmd: picprg_cmd_t;           {info about the command, returned invalid}
   out     dat: sys_int_conv32_t;       {returned bits shfited into LSB, high zero}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
+procedure picprg_rsp_recv24m (         {wait for RECV24M command completion}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in out  cmd: picprg_cmd_t;           {info about the command, returned invalid}
+  out     dat: sys_int_conv32_t;       {returned bits, received MSB to LSB order}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
@@ -2009,6 +2054,18 @@ procedure picprg_cmdw_send4 (          {send up to 32 serial bits to the target}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
+procedure picprg_cmdw_send8m (         {send 8 bits to target, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      dat: sys_int_conv32_t;       {the data bits to send, MSB first}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
+procedure picprg_cmdw_send24m (        {send 24 bits to target, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      dat: sys_int_conv32_t;       {the data bits to send, MSB first}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
 procedure picprg_cmdw_recv1 (          {read up to 8 serial data bits from target}
   in out  pr: picprg_t;                {state for this use of the library}
   in      n: sys_int_machine_t;        {1-8 number of bits to read}
@@ -2034,6 +2091,12 @@ procedure picprg_cmdw_recv4 (          {read up to 32 serial data bits from targ
   in out  pr: picprg_t;                {state for this use of the library}
   in      n: sys_int_machine_t;        {1-32 number of bits to read}
   out     dat: sys_int_conv32_t;       {returned bits shfited into LSB, high zero}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
+procedure picprg_cmdw_recv24m (        {read 24 bits from the target, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     dat: sys_int_conv32_t;       {returned bits, received MSB to LSB order}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 

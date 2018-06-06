@@ -10,3 +10,6 @@ set buildname=picprg
 call godir (cog)source/picprg/picprg
 call build_lib
 call build_progs
+
+copya picprg_env.txt (cog)doc/picprg_env.txt
+copya picprg_prot.txt (cog)doc/picprg_prot.txt
