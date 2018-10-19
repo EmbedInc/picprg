@@ -3,36 +3,13 @@ rem
 rem   Build all the executable programs from this source library.
 rem
 setlocal
-set srcdir=picprg
-set buildname=picprg
+call build_pasinit
 
-call src_get picprg picprg.ins.pas
-call src_get picprg picprg2.ins.pas
-call src_getfrom stuff stuff.ins.pas
-
-set srclib=%srcdir%
-set msgname=
-
-set prog=test_picprg
-call build_prog_common %1 %2 %3 %4 %5 %6 %7 %8 %9
-
-set prog=test_usbprog
-call build_prog_common %1 %2 %3 %4 %5 %6 %7 %8 %9
-
-set prog=pic_prog
-call build_prog_common %1 %2 %3 %4 %5 %6 %7 %8 %9
-
-set prog=pic_read
-call build_prog_common %1 %2 %3 %4 %5 %6 %7 %8 %9
-
-set prog=pic_ctrl
-call build_prog_common %1 %2 %3 %4 %5 %6 %7 %8 %9
-
-set prog=picprg_list
-call build_prog_common %1 %2 %3 %4 %5 %6 %7 %8 %9
-
-set prog=usbprog_test
-call build_prog_common %1 %2 %3 %4 %5 %6 %7 %8 %9
-
-set prog=dump_picprg
-call build_prog_common %1 %2 %3 %4 %5 %6 %7 %8 %9
+call src_prog %srcdir% test_picprg %1
+call src_prog %srcdir% test_usbprog %1
+call src_prog %srcdir% pic_prog %1
+call src_prog %srcdir% pic_read %1
+call src_prog %srcdir% pic_ctrl %1
+call src_prog %srcdir% picprg_list %1
+call src_prog %srcdir% usbprog_test %1
+call src_prog %srcdir% dump_picprg %1
