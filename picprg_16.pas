@@ -15,8 +15,9 @@ define picprg_erase_16f88x;
 define picprg_erase_16f61x;
 define picprg_write_16f72x;
 define picprg_erase_16f182x;
+define picprg_erase_16f183xx;
 define picprg_erase_12f1501;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 {
 *******************************************************************************
 *
@@ -76,6 +77,32 @@ begin
   picprg_recv (pr, 16, i32, stat);
   if sys_error(stat) then return;
   dat := rshft(i32, 1) & 16#3FFF;      {remove start/stop bits and align 14 bit data}
+  end;
+{
+*******************************************************************************
+*
+*   Local subroutine LOADPC (PR, ADR, STAT)
+*
+*   Loads the address ADR into the PC of the target chip.  The LOAD PC ADDRESS
+*   instruction is used, which is followed by a total of 24 bits.  The first
+*   bit is 0, then 22 address bits, then another 0.
+*
+*   This is for the 16F183xx and similar.
+}
+procedure loadpc (                     {load address into the PC}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      adr: sys_int_conv32_t;       {the address}
+  out     stat: sys_err_t);            {completion status}
+  val_param; internal;
+
+begin
+  picprg_send (pr, 6, 2#011101, stat); {send LOAD PC ADDRESS command}
+  if sys_error(stat) then return;
+  picprg_send (                        {send the address in a 24 bit word}
+    pr,                                {PICPRG library use state}
+    24,                                {number of bits to send}
+    lshft(adr & 16#3FFFFF, 1),         {the bits to send}
+    stat);
   end;
 {
 *******************************************************************************
@@ -688,6 +715,45 @@ begin
   if sys_error(stat) then return;
 
   picprg_send6 (pr, 2#01011, stat);    {BULK ERASE DATA MEMORY (11)}
+  if sys_error(stat) then return;
+  picprg_cmdw_wait (pr, 0.010, stat);
+  if sys_error(stat) then return;
+
+  picprg_reset (pr, stat);             {reset target to guaranteed known state}
+  if sys_error(stat) then return;
+  end;
+{
+*******************************************************************************
+*
+*   Subroutine PICPRG_ERASE_16F183XX (PR, STAT)
+*
+*   Erase all erasable non-volatile memory in the target chip except the
+*   calibration words.
+*
+*   Steps:
+*
+*     Reset
+*     PC set to E800h
+*     BULK ERASE MEMORY (9)
+*     wait 10 ms
+*     Reset
+}
+procedure picprg_erase_16f183xx (      {erase routine for 16F183xx}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+begin
+  picprg_reset (pr, stat);             {reset target to put it into known state}
+  if sys_error(stat) then return;
+
+  picprg_cmdw_writing (pr, stat);      {indicate the target is being written to}
+  if sys_error(stat) then return;
+
+  loadpc (pr, 16#E800, stat);          {set the PC to special address for erasing all}
+  if sys_error(stat) then return;
+
+  picprg_send6 (pr, 2#01001, stat);    {BULK ERASE MEMORY (9)}
   if sys_error(stat) then return;
   picprg_cmdw_wait (pr, 0.010, stat);
   if sys_error(stat) then return;

@@ -404,7 +404,7 @@ Commands
           MEMORY (9) with PC at 2000h.  10mS wait.
 
         Write: 16f88x
-k
+
           BEGIN PROGRAMMING, externally timed (24)
           END PROGRAMMING (10)
 
@@ -467,6 +467,25 @@ k
 
           Commands to load data with no increment (00h), with increment
           (02h), and start internally times write (E0h).
+
+      16F183XX  -  16F18313 and related (enhanced 16 bit core with EEPROM).
+
+        Reset: 62x or 16F182x
+
+          If programmer can hit 8.0-9.0V Vpp, then 62x algorithm (Vpp
+          before Vdd).  Otherwise uses 16F182x algorithm (key sequence to
+          enter program mode where Vpp is held low the whole time).
+
+        Read: enhanced (4 digit) 16F
+
+        Erase: 16f182x
+
+          Adr to E800h, BULK ERASE MEMORY (9), 10 ms
+
+        Write: 16f182x
+
+          Normal program memory: BEGIN PROG 24, END PROG 10
+          Config space: BEGIN PROG 8, wait 10ms
 
       18F  -  Generic 18F, such as 18F452.
 

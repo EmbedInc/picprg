@@ -127,6 +127,7 @@ type
     picprg_picfam_16f88x_k,            {PIC 16F88x}
     picprg_picfam_16f182x_k,           {PIC 16F182x}
     picprg_picfam_16f15313_k,          {PIC 16F15313 and related}
+    picprg_picfam_16f183xx_k,          {PIC 16F18313 and related}
     picprg_picfam_18f_k,               {generic 18F, like 18F452}
     picprg_picfam_18f2520_k,           {18F2520 and related}
     picprg_picfam_18f2523_k,           {18F2523 and related}
@@ -173,7 +174,8 @@ type
     picprg_write_16f77_k = 10,         {BEGIN PROG 8, END PROG 14}
     picprg_write_16f88x_k = 11,        {BEGIN PROG 24, END PROG 10}
     picprg_write_16f182x_k = 12,       {BEGIN PROG 24 END PROG 10, config: BEGIN PROG 8}
-    picprg_write_16fb_k = 13);         {8 bit programming opcodes, like 16F15313}
+    picprg_write_16fb_k = 13,          {8 bit programming opcodes, like 16F15313}
+    picprg_write_16f183xx_k = 14);     {16F183xx and related}
   picprg_write_t = set of bitsize 32 eletype picprg_write_k_t;
 
   picprg_read_k_t = (                  {IDs for the possible read algorithms}
@@ -184,7 +186,8 @@ type
     picprg_read_30f_k = 4,             {for 30F (dsPIC)}
     picprg_read_18fe_k = 5,            {generic 18F, both program and EEPROM space}
     picprg_read_16fe_k = 6,            {enhanced (4 digit) 16F}
-    picprg_read_16fb_k = 7);           {enhanced 16F with 8 bit opcodes, like 16F15313}
+    picprg_read_16fb_k = 7,            {enhanced 16F with 8 bit opcodes, like 16F15313}
+    picprg_read_16f183xx_k = 8);       {16F183xx and similar}
 
   picprg_read_t = set of bitsize 32 eletype picprg_read_k_t;
 

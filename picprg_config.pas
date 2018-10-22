@@ -1150,6 +1150,70 @@ picprg_picfam_16f15313_k: begin        {8 bit opcodes, like 16F15313}
         univ_ptr(addr(picprg_read_gen));
       end;
 
+picprg_picfam_16f183xx_k: begin        {PIC 16F18313 and related}
+      r := (idb.vppmin + idb.vppmax) / 2.0; {make desired Vpp voltage}
+      r := max(pr.fwinfo.vppmin, min(pr.fwinfo.vppmax, r)); {clip to programmer's range}
+      didit := false;                  {init to no reset algorithm selected}
+      if                               {programmer can do normal high voltage Vpp method ?}
+          pr.hvpenab and               {allowed by the user ?}
+          (r >= idb.vppmin) and (r <= idb.vppmax) and {prog can hit required Vpp range ?}
+          (picprg_reset_62x_k in pr.fwinfo.idreset) {can do required reset algorithm ?}
+        then begin
+          picprg_cmdw_idreset (pr, picprg_reset_62x_k, true, stat);
+          if sys_error(stat) then return;
+          didit := true;
+          end
+        else begin                     {can't do HVP, try key sequence method}
+          if                           {programmer can do key sequence prog entry method ?}
+              pr.lvpenab and           {allowed by the user ?}
+              (picprg_reset_16f182x_k in pr.fwinfo.idreset) {can do key sequence ?}
+              then begin
+            picprg_cmdw_idreset (pr, picprg_reset_16f182x_k, true, stat); {set key seq algorithm}
+            if sys_error(stat) then return;
+            if pr.fwinfo.cmd[61] then begin {prog has Vpp command ?}
+              picprg_cmdw_vpp (pr, idb.vdd.norm, stat); {set Vpp to Vdd level}
+              if sys_error(stat) then return;
+              end;
+            donevpp := true;           {Vpp config all set, don't try setting later}
+            didit := true;
+            end;
+          end
+        ;                              {done setting up reset algorithm}
+      if not didit then begin          {unable to find reset algorithm}
+        if (pr.hvpenab and pr.lvpenab) then goto not_implemented;
+        goto not_supp_opt;
+        end;
+
+      picprg_cmdw_idwrite (pr, picprg_write_16f183xx_k, stat);
+      if sys_stat_match (picprg_subsys_k, picprg_stat_writnimp_k, stat)
+        then goto not_implemented;
+      if sys_error(stat) then return;
+      if idb.wbufsz <> 1 then begin
+        picprg_cmdw_wbufsz (pr, idb.wbufsz, stat);
+        discard( sys_stat_match (picprg_subsys_k, picprg_stat_cmdnimp_k, stat) );
+        if sys_error(stat) then return;
+        end;
+
+      picprg_cmdw_idread (pr, picprg_read_16f183xx_k, stat);
+      if sys_stat_match (picprg_subsys_k, picprg_stat_readnimp_k, stat)
+        then goto not_implemented;
+      if sys_error(stat) then return;
+
+      if idb.ndat > 0 then begin       {this target has EEPROM ?}
+        picprg_cmdw_datadr (pr, idb.datmap, stat); {indicate where EEPROM is mapped to prog mem}
+        if sys_stat_match (picprg_subsys_k, picprg_stat_readnimp_k, stat)
+          then goto not_implemented;
+        if sys_error(stat) then return;
+        end;
+
+      pr.erase_p :=                    {install erase routine}
+        univ_ptr(addr(picprg_erase_16f183xx));
+      pr.write_p :=                    {install array write routine}
+        univ_ptr(addr(picprg_write_targw));
+      pr.read_p :=                     {install array read routine}
+        univ_ptr(addr(picprg_read_gen));
+      end;
+
 picprg_picfam_12f1501_k: begin         {enhanced 14 bit core without EEPROM}
       r := (idb.vppmin + idb.vppmax) / 2.0; {make desired Vpp voltage}
       r := max(pr.fwinfo.vppmin, min(pr.fwinfo.vppmax, r)); {clip to programmer's range}

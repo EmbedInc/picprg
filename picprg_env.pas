@@ -217,6 +217,7 @@ begin
   string_appends (famnames, ' 18K80'(0)); {32}
   string_appends (famnames, ' 33EP'(0)); {33}
   string_appends (famnames, ' 16F15313'(0)); {34}
+  string_appends (famnames, ' 16F183XX'(0)); {35}
 {
 *   Loop back here to read each new line from the environment file set.
 }
@@ -593,6 +594,12 @@ done_vdd:                              {done with all name tokens}
       end;
 34: begin
       idblock_p^.fam := picprg_picfam_16f15313_k;
+      idblock_p^.wblen := 16#8000;
+      idblock_p^.adrres := 0;          {reset sets address to 0}
+      idblock_p^.adrreskn := true;
+      end;
+35: begin
+      idblock_p^.fam := picprg_picfam_16f183xx_k;
       idblock_p^.wblen := 16#8000;
       idblock_p^.adrres := 0;          {reset sets address to 0}
       idblock_p^.adrreskn := true;

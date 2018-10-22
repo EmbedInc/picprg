@@ -1508,8 +1508,14 @@ Commands
        12 bit core:
 
             Program memory address where the start of non-volatile data
-            memory is mapped.  This only needs to be set for 12 bit core
-            devices that have non-volatile data memory.
+            memory is mapped.  This only needs to be set for devices that
+            have non-volatile data memory.
+
+       Enhanced 14 bit core:
+
+            Program memory address where the start of non-volatile data
+            memory is mapped.  This only needs to be set for devices that
+            have non-volatile data memory.
 
        There is no guaranteed default value.  This command must be used
        for any of the PIC types listed above, unless otherwise noted.
