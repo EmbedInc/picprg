@@ -1,5 +1,5 @@
          Embed Inc PIC Programmers Host Protocol Specification
-                       Version 29.9, 28 May 2018
+                       Version 29.10, 22 October 2018
 
 This document describes the Embed Inc PIC programmer communications
 protocol.  This protocol is used to communicate between a host computer
@@ -253,6 +253,10 @@ Revisions
          protocol that uses 8 bit opcodes and 24 bit data words.  This
          seems to be the "new" 16F1xxxx protocol, first introduced in
          parts like the 16F15313.
+
+    29.10 22 Oct 2018
+
+         Added enhanced 14 bit core parts to DATADR description.
 
 
 Overview

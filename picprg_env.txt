@@ -1,5 +1,5 @@
                          PICPRG.ENV File Format
-                              30 May 2018
+                            22 October 2018
 
 This document describes the format of the PICPRG.ENV file, which contains
 static information for the PICPRG library.  This file is an Embed Inc
@@ -476,16 +476,22 @@ Commands
           before Vdd).  Otherwise uses 16F182x algorithm (key sequence to
           enter program mode where Vpp is held low the whole time).
 
-        Read: enhanced (4 digit) 16F
+        Read: 16F183xx
 
-        Erase: 16f182x
+          READ DATA FROM NVM and increment (36), LOAD PC ADDRESS (29),
+          INCREMENT ADDRESS (6).
 
-          Adr to E800h, BULK ERASE MEMORY (9), 10 ms
+        Erase: 16F183xx
 
-        Write: 16f182x
+          Adr to E800h, BULK ERASE MEMORY (9), 10 ms.
 
-          Normal program memory: BEGIN PROG 24, END PROG 10
-          Config space: BEGIN PROG 8, wait 10ms
+        Write: 16F183xx
+
+          LOAD DATA FOR NVM, no increment (2), LOAD DATA FOR NVM,
+          increment adr (34), BEGIN EXTERNALLY TIMED PROGRAMMING (24), END
+          PROGRAMMING (10), BEGIN INTERNALLY TIMED PROGRAMMING (8), LOAD
+          PC ADDRESS (29), INCREMENT ADDRESS (6).
+          Config space: BEGIN PROG 8, wait 10ms.
 
       18F  -  Generic 18F, such as 18F452.
 
