@@ -15,3 +15,5 @@ call src_getfrom stuff stuff.ins.pas
 
 call src_get %srcdir% %libname%.ins.pas
 call src_get %srcdir% %libname%2.ins.pas
+
+call src_builddate "%srcdir%"
