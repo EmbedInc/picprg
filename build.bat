@@ -9,6 +9,4 @@ call build_vars
 
 call build_lib
 call build_progs
-
-call src_doc %srcdir% picprg_env.txt
-call src_doc %srcdir% picprg_prot.txt
+call build_doc
