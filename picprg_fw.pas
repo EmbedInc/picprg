@@ -5,7 +5,7 @@ module picprg_fw;
 define picprg_fwinfo;
 define picprg_fw_show1;
 define picprg_fw_check;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 {
 *******************************************************************************
 *

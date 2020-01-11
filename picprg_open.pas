@@ -29,7 +29,7 @@
 }
 module picprg_open;
 define picprg_open;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 
 procedure picprg_open (                {open a new use of this library}
   in out  pr: picprg_t;                {state for this use of the library}

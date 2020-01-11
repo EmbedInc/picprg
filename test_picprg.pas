@@ -5,8 +5,8 @@
 *   the protocol described in the PICPRG_PROT documentation file.
 }
 program test_picprg;
-%include '(cog)lib/picprg2.ins.pas';
-%include '(cog)lib/math.ins.pas';
+%include 'picprg2.ins.pas';
+%include 'math.ins.pas';
 
 const
   n_cmdnames_k = 80;                   {number of command names in the list}
@@ -155,12 +155,12 @@ var
   twover: boolean;                     {do two verify passes at the Vdd limits}
 
   buf:                                 {one line command buffer}
-    %include '/cognivision_links/dsee_libs/string/string8192.ins.pas';
+    %include '(cog)lib/string8192.ins.pas';
   p: string_index_t;                   {BUF parse index}
   opt:                                 {upcased command line option}
-    %include '/cognivision_links/dsee_libs/string/string_treename.ins.pas';
+    %include '(cog)lib/string_treename.ins.pas';
   parm:                                {command line option parameter}
-    %include '/cognivision_links/dsee_libs/string/string_treename.ins.pas';
+    %include '(cog)lib/string_treename.ins.pas';
   pick: sys_int_machine_t;             {number of token picked from list}
   msg_parm:                            {references arguments passed to a message}
     array[1..max_msg_args] of sys_parm_msg_t;

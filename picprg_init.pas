@@ -8,7 +8,7 @@
 }
 module picprg_init;
 define picprg_init;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 
 procedure picprg_init (                {initialize library state to defaults}
   out     pr: picprg_t);               {returned ready to pass to OPEN}

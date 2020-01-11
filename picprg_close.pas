@@ -6,7 +6,7 @@
 }
 module picprg_close;
 define picprg_close;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 
 procedure picprg_close (               {end a use of this library}
   in out  pr: picprg_t;                {library use state, returned invalid}

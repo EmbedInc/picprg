@@ -2,7 +2,7 @@
 }
 module picprg_10;
 define picprg_erase_10;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 {
 *******************************************************************************
 *

@@ -16,10 +16,10 @@ const
 
 var
   fnam_out:                            {HEX output file name}
-    %include '/cognivision_links/dsee_libs/string/string_treename.ins.pas';
+    %include '(cog)lib/string_treename.ins.pas';
   oname_set: boolean;                  {TRUE if the output file name already set}
   name:                                {PIC name selected by user}
-    %include '/cognivision_links/dsee_libs/string/string32.ins.pas';
+    %include '(cog)lib/string32.ins.pas';
   pr: picprg_t;                        {PICPRG library state}
   tinfo: picprg_tinfo_t;               {configuration info about the target chip}
   dat_p: picprg_datar_p_t;             {pnt to data array for max size data region}
@@ -38,9 +38,9 @@ var
   hexopen: boolean;                    {TRUE when HEX file is open}
 
   opt:                                 {upcased command line option}
-    %include '/cognivision_links/dsee_libs/string/string_treename.ins.pas';
+    %include '(cog)lib/string_treename.ins.pas';
   parm:                                {command line option parameter}
-    %include '/cognivision_links/dsee_libs/string/string_treename.ins.pas';
+    %include '(cog)lib/string_treename.ins.pas';
   pick: sys_int_machine_t;             {number of token picked from list}
   msg_parm:                            {references arguments passed to a message}
     array[1..max_msg_args] of sys_parm_msg_t;

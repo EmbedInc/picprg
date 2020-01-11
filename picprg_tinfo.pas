@@ -6,7 +6,7 @@
 }
 module picprg_tinfo;
 define picprg_tinfo;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 
 procedure picprg_tinfo (               {get detailed info about the target chip}
   in out  pr: picprg_t;                {state for this use of the library}

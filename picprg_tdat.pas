@@ -9,7 +9,7 @@ define picprg_tdat_vdd1;
 define picprg_tdat_vddlev;
 define picprg_tdat_prog;
 define picprg_tdat_verify;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 {
 ********************************************************************************
 *

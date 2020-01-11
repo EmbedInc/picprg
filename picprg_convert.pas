@@ -3,7 +3,7 @@
 module picprg_convert;
 define picprg_sec_ticks;
 define picprg_volt_vdd;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 {
 *******************************************************************************
 *

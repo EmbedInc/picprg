@@ -17,7 +17,7 @@ define picprg_write_18f2520;
 define picprg_18_test;
 define picprg_read_18d;
 define picprg_write_18d;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 
 const
   eepgd = 7;                           {number of EEPGD bit in EECON1}

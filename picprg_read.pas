@@ -3,7 +3,7 @@
 module picprg_read;
 define picprg_read;
 define picprg_read_gen;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 {
 *******************************************************************************
 *

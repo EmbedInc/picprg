@@ -4,7 +4,7 @@ module picprg_write;
 define picprg_write;
 define picprg_write8b;
 define picprg_write_targw;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 {
 *******************************************************************************
 *

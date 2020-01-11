@@ -2,7 +2,7 @@
 }
 module picprg_12f6;
 define picprg_erase_12f6xx;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 {
 *******************************************************************************
 *

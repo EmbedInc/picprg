@@ -17,7 +17,7 @@ define picprg_vddlev;
 define picprg_vddset;
 define picprg_sendbuf;
 define picprg_progtime;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 {
 *******************************************************************************
 *

@@ -5,7 +5,7 @@
 }
 module picprg_thread_in;
 define picprg_thread_in;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 
 procedure picprg_thread_in (           {root thread routine, receives from remote}
   in out  pr: picprg_t);               {state for this use of the library}

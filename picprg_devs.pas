@@ -4,7 +4,7 @@ module picprg_devs;
 define picprg_list_get;
 define picprg_devs_add;
 define picprg_list_del;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 {
 *******************************************************************************
 *

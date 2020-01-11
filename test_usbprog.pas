@@ -11,16 +11,16 @@ const
 
 var
   name:                                {name of device to open, empty = first available}
-    %include '/cognivision_links/dsee_libs/string/string80.ins.pas';
+    %include '(cog)lib/string80.ins.pas';
   conn: file_conn_t;                   {connection to the remote unit}
   wrlock: sys_sys_threadlock_t;        {lock for writing to standard output}
   thid_in: sys_sys_thread_id_t;        {ID of read input thread}
   prompt:                              {prompt string for entering command}
-    %include '/cognivision_links/dsee_libs/string/string4.ins.pas';
+    %include '(cog)lib/string4.ins.pas';
   buf:                                 {one line command buffer}
-    %include '/cognivision_links/dsee_libs/string/string8192.ins.pas';
+    %include '(cog)lib/string8192.ins.pas';
   obuf:                                {output bytes data buffer}
-    %include '/cognivision_links/dsee_libs/string/string8192.ins.pas';
+    %include '(cog)lib/string8192.ins.pas';
   p: string_index_t;                   {BUF parse index}
   quit: boolean;                       {TRUE when trying to exit the program}
   newline: boolean;                    {STDOUT stream is at start of new line}
@@ -29,9 +29,9 @@ var
   i1: sys_int_machine_t;               {integer command parameters}
 
   opt:                                 {upcased command line option}
-    %include '/cognivision_links/dsee_libs/string/string_treename.ins.pas';
+    %include '(cog)lib/string_treename.ins.pas';
   parm:                                {command line option parameter}
-    %include '/cognivision_links/dsee_libs/string/string_treename.ins.pas';
+    %include '(cog)lib/string_treename.ins.pas';
   pick: sys_int_machine_t;             {number of token picked from list}
   msg_parm:                            {parameter references for messages}
     array[1..max_msg_parms] of sys_parm_msg_t;

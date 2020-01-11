@@ -6,7 +6,7 @@ define picprg_cmdovl_out;
 define picprg_cmdovl_outw;
 define picprg_cmdovl_in;
 define picprg_cmdovl_flush;
-%include '/cognivision_links/dsee_libs/pics/picprg2.ins.pas';
+%include 'picprg2.ins.pas';
 {
 *******************************************************************************
 *
