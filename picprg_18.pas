@@ -548,7 +548,7 @@ begin
   if sys_error(stat) then return;
   picprg_18_setadr (pr, 16#3C0004, stat);
   if sys_error(stat) then return;
-  picprg_18_write (pr, 2#1100, 16#8787, stat);
+  picprg_18_write (pr, 2#1100, 16#8F8F, stat);
   if sys_error(stat) then return;
 
   coreinst (pr, 0, stat);              {execute NOP instruction}
@@ -1199,7 +1199,7 @@ setup_config_k: begin                  {writing ID locations}
     ;
   picprg_18_write (pr, 2#1111, d, stat); {issue the write command}
   if sys_error(stat) then return;
-  picprg_18_write_wait (pr, pr.id_p^.tprogp, 0.0001, stat); {do the write cycle}
+  picprg_18_write_wait (pr, 0.010, 0.001, stat); {do the write cycle}
   if sys_error(stat) then return;
   tadr := abst;                        {update local copy of target chip address}
   end;
