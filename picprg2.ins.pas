@@ -276,11 +276,6 @@ procedure picprg_erase_18f14k22 (      {erase routine for 18F14k22 and related}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
-procedure picprg_erase_18f14k50 (      {erase routine for 18F14k50 and related}
-  in out  pr: picprg_t;                {state for this use of the library}
-  out     stat: sys_err_t);            {completion status}
-  val_param; extern;
-
 procedure picprg_erase_18f2523 (       {erase routine for 18F2523 and related}
   in out  pr: picprg_t;                {state for this use of the library}
   out     stat: sys_err_t);            {completion status}

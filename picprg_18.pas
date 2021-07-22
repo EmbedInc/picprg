@@ -10,7 +10,6 @@ define picprg_erase_18f6310;
 define picprg_erase_18f2523;
 define picprg_erase_18f25j10;
 define picprg_erase_18f14k22;
-define picprg_erase_18f14k50;
 define picprg_erase_18k80;
 define picprg_write_18;
 define picprg_write_18f2520;
@@ -493,44 +492,6 @@ begin
 *   This version is for the 18F14K22 and related.
 }
 procedure picprg_erase_18f14k22 (      {erase routine for 18F14k22 and related}
-  in out  pr: picprg_t;                {state for this use of the library}
-  out     stat: sys_err_t);            {completion status}
-  val_param;
-
-begin
-  picprg_reset (pr, stat);             {reset target to put it into known state}
-  if sys_error(stat) then return;
-
-  picprg_cmdw_writing (pr, stat);      {indicate the target is being written to}
-  if sys_error(stat) then return;
-
-  picprg_18_setadr (pr, 16#3C0005, stat); {perform the chip erase sequence}
-  if sys_error(stat) then return;
-  picprg_18_write (pr, 2#1100, 16#0F0F, stat);
-  if sys_error(stat) then return;
-  picprg_18_setadr (pr, 16#3C0004, stat);
-  if sys_error(stat) then return;
-  picprg_18_write (pr, 2#1100, 16#8F8F, stat);
-  if sys_error(stat) then return;
-
-  coreinst (pr, 0, stat);              {execute NOP instruction}
-  if sys_error(stat) then return;
-  picprg_18_erase_wait (pr, 0.010, stat); {send the NOP with special stretched timing}
-  if sys_error(stat) then return;
-
-  picprg_reset (pr, stat);             {reset target to guaranteed known state}
-  if sys_error(stat) then return;
-  end;
-{
-*******************************************************************************
-*
-*   Subroutine PICPRG_ERASE_18F14K50 (PR, STAT)
-*
-*   Erase all erasable non-volatile memory in the target chip.
-*
-*   This version is for the 18F14K50 and related.
-}
-procedure picprg_erase_18f14k50 (      {erase routine for 18F14k50 and related}
   in out  pr: picprg_t;                {state for this use of the library}
   out     stat: sys_err_t);            {completion status}
   val_param;

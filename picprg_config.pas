@@ -689,7 +689,7 @@ picprg_picfam_18f14k50_k: begin        {18F14K50 and related}
       if sys_error(stat) then return;
 
       pr.erase_p :=                    {install erase routine}
-        univ_ptr(addr(picprg_erase_18f14k50));
+        univ_ptr(addr(picprg_erase_18f14k22));
       pr.write_p :=                    {install array write routine}
         univ_ptr(addr(picprg_write_18f2520));
       pr.read_p :=                     {install array read routine}
