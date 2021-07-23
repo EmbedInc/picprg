@@ -514,7 +514,7 @@ begin
 
   coreinst (pr, 0, stat);              {execute NOP instruction}
   if sys_error(stat) then return;
-  picprg_18_erase_wait (pr, 0.010, stat); {send the NOP with special stretched timing}
+  picprg_18_erase_wait (pr, 0.015, stat); {send the NOP with special stretched timing}
   if sys_error(stat) then return;
 
   picprg_reset (pr, stat);             {reset target to guaranteed known state}
