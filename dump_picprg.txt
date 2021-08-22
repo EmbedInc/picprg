@@ -1,0 +1,17 @@
+                        Embed Program DUMP_PICPRG
+                              22 August 2021
+
+dump_picprg
+
+Dumps all the individual PIC configuration information available to the
+PICPRG library to the file PICPRG.ENV in the current directory.  The
+format of PICPRG.ENV files is described in the PICPRG_ENV documentation
+file.
+
+All the entries are sorted by ascending PIC name, and are are written in a
+consistent format.  This program can therefore be used to make a "cleaned
+up" version of the PICPRG.ENV file after manual changes.
+
+Duplicate entries with the same information are silently ignored.
+
+Duplicate entries with differing information is a hard error.

@@ -5,6 +5,7 @@ rem
 setlocal
 call build_pasinit
 
+call src_prog %srcdir% dump_picprg %1
 call src_prog %srcdir% pic_prog %1
 call src_prog %srcdir% pic_read %1
 call src_prog %srcdir% pic_ctrl %1
