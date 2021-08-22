@@ -127,5 +127,8 @@ begin
   picprg_cmdw_send8m (pr, opc_ebulk, stat); {do the bulk erase}
   if sys_error(stat) then return;
 
-  picprg_cmdw_wait (pr, 0.010, stat);  {guarantee 10 ms before next activity}
+  picprg_cmdw_wait (pr, 0.015, stat);  {wait for bulk erase to complete}
+  if sys_error(stat) then return;
+
+  picprg_cmdw_reset (pr, stat);
   end;
