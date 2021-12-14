@@ -1105,18 +1105,18 @@ picprg_picfam_16f15313_k: begin        {8 bit opcodes, like 16F15313}
       if                               {programmer can do normal high voltage Vpp method ?}
           pr.hvpenab and               {allowed by the user ?}
           (r >= idb.vppmin) and (r <= idb.vppmax) and {prog can hit required Vpp range ?}
-          (picprg_reset_18f_k in pr.fwinfo.idreset) {can do required reset algorithm ?}
+          (picprg_reset_62x_k in pr.fwinfo.idreset) {can do required reset algorithm ?}
         then begin
-          picprg_cmdw_idreset (pr, picprg_reset_18f_k, true, stat);
+          picprg_cmdw_idreset (pr, picprg_reset_62x_k, false, stat);
           if sys_error(stat) then return;
           didit := true;
           end
         else begin                     {can't do HVP, try key sequence method}
           if                           {programmer can do key sequence prog entry method ?}
               pr.lvpenab and           {allowed by the user ?}
-              (picprg_reset_16f182x_k in pr.fwinfo.idreset) {can do key sequence ?}
+              (picprg_reset_16f153xx_k in pr.fwinfo.idreset) {can do key sequence ?}
               then begin
-            picprg_cmdw_idreset (pr, picprg_reset_16f182x_k, true, stat); {set key seq algorithm}
+            picprg_cmdw_idreset (pr, picprg_reset_16f153xx_k, true, stat); {set key seq algorithm}
             if sys_error(stat) then return;
             if pr.fwinfo.cmd[61] then begin {prog has Vpp command ?}
               picprg_cmdw_vpp (pr, idb.vdd.norm, stat); {set Vpp to Vdd level}

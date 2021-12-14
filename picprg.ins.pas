@@ -156,7 +156,8 @@ type
     picprg_reset_16f182x_k = 9,        {no Vpp, special signature for 16F182x}
     picprg_reset_24fj_k = 10,          {24FJ parts}
     picprg_reset_18k80_k = 11,         {18FxxK80 high voltage program mode entry}
-    picprg_reset_33ep_k = 12);         {24EP and 33EP parts}
+    picprg_reset_33ep_k = 12,          {24EP and 33EP parts}
+    picprg_reset_16f153xx_k = 13);     {Vpp low, "MCHP" signature MSB to LSB}
 
   picprg_reset_t = set of bitsize 32 eletype picprg_reset_k_t;
 

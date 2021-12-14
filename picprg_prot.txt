@@ -1,5 +1,5 @@
          Embed Inc PIC Programmers Host Protocol Specification
-                       Version 29.10, 22 October 2018
+                    Version 29.11, 14 December 2021
 
 This document describes the Embed Inc PIC programmer communications
 protocol.  This protocol is used to communicate between a host computer
@@ -257,6 +257,10 @@ Revisions
     29.10 22 Oct 2018
 
          Added enhanced 14 bit core parts to DATADR description.
+
+    29.11 14 Dec 2021
+
+         Added reset ID 13 to support 16F153xx.
 
 
 Overview
@@ -793,6 +797,10 @@ Commands
        12 (Version 29, optional): For PIC 24EP and dsPIC 33EP.  Adds
            additional wait time in some places, and additional NOP
            instructions in certain sequences.
+
+       13 (Version 29, optional): For 16F153xx and possible others.  Holds
+           Vpp low, then clocks in the 32 bit signature "MCHP" in MSB to
+           LSB order.  Vpp stays low.
 
   RESADR: 40 <i24 address>
        (Version 5)

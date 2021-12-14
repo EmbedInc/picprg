@@ -466,7 +466,7 @@ Commands
         Write: 16F15313
 
           Commands to load data with no increment (00h), with increment
-          (02h), and start internally times write (E0h).
+          (02h), and start internally timed write (E0h).
 
       16F183XX  -  16F18313 and related (enhanced 16 bit core with EEPROM).
 

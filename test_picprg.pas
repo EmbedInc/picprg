@@ -722,6 +722,9 @@ loop_cmd:                              {back here to get each new command from u
   writeln ('    24F  - For 24F devices.');
   writeln ('    182x - for 16F182x key sequence.');
   writeln ('    24FJ - For 24FJ devices.');
+  writeln ('    18K80');
+  writeln ('    33EP');
+  writeln ('    16F153 - Vpp low, "MCHP" signature MSB to LSB.');
   writeln ('  IDWRITE id - Select write algorithm, NAME =');
   writeln ('    0    - Does nothing, target not accessed.');
   writeln ('    1    - Generic 16Fxxx.');
@@ -1146,7 +1149,9 @@ devtype_oc1t_k: begin                  {Olin's Depot OC1 production test jig}
 *   IDRESET name
 }
 23: begin
-  i8 := next_choice ('NONE 62X 18F DPNA 30F DPF 18J 24H 24F 182X 24FJ', stat) - 1;
+  i8 := next_choice (
+    'NONE 62X 18F DPNA 30F DPF 18J 24H 24F 182X 24FJ 18K80 33EP 16F153',
+    stat) - 1;
   if sys_error(stat) then goto err_cmparm;
   if not_eos then goto err_extra;
 
