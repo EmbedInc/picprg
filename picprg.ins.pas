@@ -126,7 +126,7 @@ type
     picprg_picfam_16f87xa_k,           {PIC 16F87xA}
     picprg_picfam_16f88x_k,            {PIC 16F88x}
     picprg_picfam_16f182x_k,           {PIC 16F182x}
-    picprg_picfam_16f15313_k,          {PIC 16F15313 and related}
+    picprg_picfam_16f15313_k,          {PIC 16F153xx, 8 bit commands}
     picprg_picfam_16f183xx_k,          {PIC 16F18313 and related}
     picprg_picfam_18f_k,               {generic 18F, like 18F452}
     picprg_picfam_18f2520_k,           {18F2520 and related}
@@ -148,16 +148,16 @@ type
     picprg_reset_62x_k = 1,            {Vpp on before Vdd, like 16F62x}
     picprg_reset_18f_k = 2,            {Vdd on before Vpp, like 18Fxxx}
     picprg_reset_dpna_k = 3,           {Vdd before Vpp, target address unknown}
-    picprg_reset_30f_k = 4,            {for 30F (dsPIC)}
+    picprg_reset_30f_k = 4,            {Vdd then Vpp, for 30F}
     picprg_reset_vddvppf_k = 5,        {Vdd then Vpp as quickly as possible}
-    picprg_reset_18j_k = 6,            {special unlock used by 18F25J10 and others}
+    picprg_reset_18j_k = 6,            {Vdd, blip Vpp, "MCHP" MSB to LSB, Vpp on}
     picprg_reset_24h_k = 7,            {24H and 33F dsPIC types}
     picprg_reset_24f_k = 8,            {24F parts}
-    picprg_reset_16f182x_k = 9,        {no Vpp, special signature for 16F182x}
+    picprg_reset_16f182x_k = 9,        {Vpp off, Vdd on, "MCHP" LSB to MSB, 1 clock}
     picprg_reset_24fj_k = 10,          {24FJ parts}
-    picprg_reset_18k80_k = 11,         {18FxxK80 high voltage program mode entry}
+    picprg_reset_18k80_k = 11,         {Vdd on, Vpp on, "MCHP" LSB to MSB}
     picprg_reset_33ep_k = 12,          {24EP and 33EP parts}
-    picprg_reset_16f153xx_k = 13);     {Vpp low, "MCHP" signature MSB to LSB}
+    picprg_reset_16f153xx_k = 13);     {Vdd on, Vpp off, "MCHP" MSB to LSB}
 
   picprg_reset_t = set of bitsize 32 eletype picprg_reset_k_t;
 

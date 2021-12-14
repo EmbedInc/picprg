@@ -49,8 +49,8 @@ var
   resp: boolean;                       {a response was received from the target chip}
 
 label
-  done_18j, done_24h, done_33ep, done_16xxxx, done_16f72x, done_16fb, done_18lv,
-  done_18k, done_62x, done_16f18f, done_30f,
+  done_18j, done_24h, done_33ep, done_16f182x, done_16f153xx, done_16f72x,
+  done_16fb, done_18lv, done_18k, done_62x, done_16f18f, done_30f,
   have_idblock, wrongpic, leave;
 {
 ****************************************
@@ -577,7 +577,7 @@ done_24h:
 done_33ep:
 
   config (picprg_reset_16f182x_k, 3.3, 3.3, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_16xxxx; {this PIC type not supported by programmer}
+  if sys_error(stat) then goto done_16f182x; {this PIC type not supported by programmer}
   check_16 (resp, stat);               {check for response to PIC16 prog commands}
   if sys_error(stat) then return;
   if resp then begin                   {a response was received from the chip ?}
@@ -588,7 +588,21 @@ done_33ep:
       goto leave;
       end;
     end;
-done_16xxxx:
+done_16f182x:
+
+  config (picprg_reset_16f153xx_k, 3.3, 3.3, stat); {select reset method and voltages}
+  if sys_error(stat) then goto done_16f153xx; {this PIC type not supported by programmer}
+  check_16b (resp, stat);              {check for response to PIC16 prog commands}
+  if sys_error(stat) then return;
+  if resp then begin                   {a response was received from the chip ?}
+    getid_16b (id, stat);              {try to read the chip ID}
+    if sys_error(stat) then return;
+    if id <> 0 then begin              {got the ID ?}
+      idspace := picprg_idspace_16b_k; {indicate PIC16B ID namespace}
+      goto leave;
+      end;
+    end;
+done_16f153xx:
 {
 *   Check for PICs with Vdd of 3.3V and Vpp of 8.5V.
 }
