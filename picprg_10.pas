@@ -148,6 +148,7 @@ cal_def_k:  sys_message_parms ('picprg', 'osccal_default', msg_parm, 1);
 otherwise
     sys_message_parms ('picprg', 'osccal_backup', msg_parm, 1);
     end;
+  sys_flush_stdout;                    {make sure all output sent to parent program}
 {
 *   Erase the user ID locations.  This is done with the PC at one of the user
 *   ID locations.

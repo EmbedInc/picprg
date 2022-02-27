@@ -592,6 +592,7 @@ begin
       write (' ', buf[i]);
       end;
     writeln;
+    sys_flush_stdout;                  {make sure all output sent to parent program}
     end;
 
   case pr.devconn of                   {what kind of I/O connection is in use ?}

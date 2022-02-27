@@ -679,6 +679,7 @@ begin
       string_append1 (tk, 'h');
       sys_msg_parm_vstr (msg_parm[1], tk);
       sys_message_parms ('picprg', 'writing_adr', msg_parm, 1);
+      sys_flush_stdout;                {make sure all output sent to parent program}
       end;
 
     blank := true;                     {init to all data in block is blank value}

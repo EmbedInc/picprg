@@ -54,6 +54,7 @@ begin
     tk, config, 16, 4, [string_fi_leadz_k, string_fi_unsig_k], stat);
   if sys_error(stat) then return;
   writeln ('CONFIG = ', tk.str:tk.len, 'h');
+  sys_flush_stdout;                    {make sure all output sent to parent program}
 
   picprg_cmdw_writing (pr, stat);      {indicate the target is being written to}
   if sys_error(stat) then return;

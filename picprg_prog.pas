@@ -65,6 +65,7 @@ begin
   sys_msg_parm_vstr (msg_parm[2], picu);
   sys_message_parms ('picprg', 'progging', msg_parm, 2);
   writeln;
+  sys_flush_stdout;                    {make sure all output sent to parent program}
 
   picprg_tdat_alloc (pr, tdat_p, stat); {allocate target data block}
   if sys_error(stat) then goto leave;
@@ -92,6 +93,7 @@ leave:                                 {common exit, STAT indicates error, if an
   if tdat_p <> nil then begin
     picprg_tdat_dealloc (tdat_p);      {deallocate TDAT structure}
     end;
+  sys_flush_stdout;                    {make sure all output sent to parent program}
   end;
 {
 ********************************************************************************

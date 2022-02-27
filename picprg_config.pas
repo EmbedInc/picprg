@@ -1302,6 +1302,7 @@ otherwise                              {not a recognized PIC family type}
       sys_msg_parm_real (msg_parm[2], idb.vppmax);
       sys_message_parms ('picprg', 'vpp_prog_high', msg_parm, 2);
       end;
+    sys_flush_stdout;                  {make sure all output sent to parent program}
     if pr.fwinfo.cmd[61] then begin    {VPP command exists ?}
       picprg_cmdw_vpp (pr, r, stat);   {set Vpp level for this target chip}
       if sys_error(stat) then return;

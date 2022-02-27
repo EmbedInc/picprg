@@ -482,6 +482,7 @@ begin
 }
   if picprg_progflag_stdout_k in flags then begin
     sys_message ('picprg', 'erasing');
+    sys_flush_stdout;                  {make sure all output sent to parent program}
     end;
 
   picprg_erase (tdat.pr_p^, stat);     {completely erase the target chip}
@@ -492,6 +493,7 @@ begin
   if tdat.pr_p^.id_p^.nprog > 0 then begin {there is program memory ?}
     if picprg_progflag_stdout_k in flags then begin
       sys_message ('picprg', 'prog_prog');
+      sys_flush_stdout;                {make sure all output sent to parent program}
       end;
 
     picprg_write (                     {write an array to the target chip}
@@ -509,6 +511,7 @@ begin
   if tdat.pr_p^.id_p^.ndat > 0 then begin {there is data memory ?}
     if picprg_progflag_stdout_k in flags then begin
       sys_message ('picprg', 'prog_data');
+      sys_flush_stdout;                {make sure all output sent to parent program}
       end;
 
     picprg_space_set (                 {switch to data memory address space}
@@ -532,6 +535,7 @@ begin
   if tdat.noth > 0 then begin          {there are "other" words to write ?}
     if picprg_progflag_stdout_k in flags then begin
       sys_message ('picprg', 'prog_other');
+      sys_flush_stdout;                {make sure all output sent to parent program}
       end;
 
     ent_p := tdat.pr_p^.id_p^.other_p; {init pointer to first list entry}
@@ -577,6 +581,7 @@ begin
   if tdat.ncfg > 0 then begin          {there are config words to write ?}
     if picprg_progflag_stdout_k in flags then begin
       sys_message ('picprg', 'writing_config');
+      sys_flush_stdout;                {make sure all output sent to parent program}
       end;
 
     ent_p := tdat.pr_p^.id_p^.config_p; {init pointer to first list entry}
@@ -767,6 +772,7 @@ begin
     if picprg_verflag_stdout_k in flags then begin
       sys_msg_parm_real (msg_parm[1], vdd);
       sys_message_parms ('picprg', 'verifying', msg_parm, 1);
+      sys_flush_stdout;                {make sure all output sent to parent program}
       end;
 {
 *   Verify normal program memory.
@@ -791,6 +797,7 @@ begin
           write ('  Prog ', tk.str:tk.len);
           string_f_int24h (tk, adr + nadr - 1);
           writeln (' - ', tk.str:tk.len);
+          sys_flush_stdout;            {make sure all output sent to parent program}
           end;
         end;                           {end of only verify specifically set locations}
       picprg_read (                    {read this block}
@@ -838,6 +845,7 @@ done_prog:
             write ('  Data ', tk.str:tk.len);
             string_f_int24h (tk, adr + nadr - 1);
             writeln (' - ', tk.str:tk.len);
+            sys_flush_stdout;          {make sure all output sent to parent program}
             end;
           end;
         picprg_read (                  {read this block}

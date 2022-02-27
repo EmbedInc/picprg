@@ -352,6 +352,7 @@ begin
     sys_msg_parm_vstr (msg_parm[1], pr.prgname);
     sys_message_parms ('picprg', 'name', msg_parm, 1);
     end;
+  sys_flush_stdout;                    {make sure all output sent to parent program}
   end;
 {
 *******************************************************************************

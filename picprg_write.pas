@@ -6,30 +6,30 @@ define picprg_write8b;
 define picprg_write_targw;
 %include 'picprg2.ins.pas';
 {
-*******************************************************************************
+********************************************************************************
 *
 *   Subroutine PICPRG_WRITE (PR, ADR, N, DAT, MASK, STAT)
 *
-*   Write an array of N values to consecutive target chip locations starting
-*   at the address ADR.  DAT is the array of input values.  MASK describes
-*   the valid bits within each data word of DAT.
+*   Write an array of N values to consecutive target chip locations starting at
+*   the address ADR.  DAT is the array of input values.  MASK describes the
+*   valid bits within each data word of DAT.
 *
-*   The library must have previously been configured to this target chip,
-*   and the chip must be enabled for programming (Vpp on and Vdd set to
-*   normal).  The locations should also have not been programmed since
-*   last erased.  This routine does not perform an erase before write
-*   cycle on each word.  It assumes that the entire chip has been bulk
-*   erased.  An actual write is avoided when the data value for a word
-*   matches the erased value, which is all implemented bits 1.  MASK is
-*   used to determine which bits are implemented.
+*   The library must have previously been configured to this target chip, and
+*   the chip must be enabled for programming (Vpp on and Vdd set to normal).
+*   The locations should also have not been programmed since last erased.  This
+*   routine does not perform an erase before write cycle on each word.  It
+*   assumes that the entire chip has been bulk erased.  An actual write is
+*   avoided when the data value for a word matches the erased value, which is
+*   all implemented bits 1.  MASK is used to determine which bits are
+*   implemented.
 *
-*   This is a low level routine that does not check whether the address
-*   range is valid for this target.  The write operations are performed
-*   as requested but not verified.  The current address is left at the
-*   last address written plus 1.
+*   This is a low level routine that does not check whether the address range is
+*   valid for this target.  The write operations are performed as requested but
+*   not verified.  The current address is left at the last address written plus
+*   1.
 *
-*   This routine calls the specific WRITE routine that is currently
-*   configured.  It is an error if no WRITE routine has been selected.
+*   This routine calls the specific WRITE routine that is currently configured.
+*   It is an error if no WRITE routine has been selected.
 }
 procedure picprg_write (               {write array of data to the target chip}
   in out  pr: picprg_t;                {state for this use of the library}
@@ -50,17 +50,17 @@ begin
   pr.flags := pr.flags - [picprg_flag_w1_k]; {reset write single words override}
   end;
 {
-*******************************************************************************
+********************************************************************************
 *
 *   Subroutine PICPRG_WRITE8B (PR, OVL, DAT, STAT)
 *
-*   Write 8 bytes to the target.  Only the low 8 bits of the first 8 words
-*   of DAT are used.
+*   Write 8 bytes to the target.  Only the low 8 bits of the first 8 words of
+*   DAT are used.
 *
-*   This subroutine uses the WRITE8 command if available, otherwise it
-*   uses the WRITE command 8 times.  This is a low level write routine,
-*   and various restrictions may exist or setup need to be performed
-*   depending on the target chip.
+*   This subroutine uses the WRITE8 command if available, otherwise it uses the
+*   WRITE command 8 times.  This is a low level write routine, and various
+*   restrictions may exist or setup need to be performed depending on the target
+*   chip.
 }
 procedure picprg_write8b (             {write 8 bytes, uses WRITE or WRITE8 cmd}
   in out  pr: picprg_t;                {state for this use of the library}
@@ -93,46 +93,45 @@ begin
     end;
   end;
 {
-*******************************************************************************
+********************************************************************************
 *
 *   Subroutine PICPRG_WRITE_TARGW (PR, ADR, N, DAT, MASK, STAT)
 *
-*   Write an array of N values to consecutive target chip locations starting
-*   at the address ADR.  DAT is the array of input values.  MASK describes
-*   the valid bits within each data word of DAT.
+*   Write an array of N values to consecutive target chip locations starting at
+*   the address ADR.  DAT is the array of input values.  MASK describes the
+*   valid bits within each data word of DAT.
 *
-*   The library must have previously been configured to this target chip,
-*   and the chip must be enabled for programming (Vpp on and Vdd set to
-*   normal).  The locations should also have not been programmed since
-*   last erased.  This routine does not perform an erase before write
-*   cycle on each word.  It assumes that the entire chip has been bulk
-*   erased.  An actual write is avoided when the data value for a word
-*   matches the erased value, which is all implemented bits 1.  MASK is
-*   used to determine which bits are implemented.
+*   The library must have previously been configured to this target chip, and
+*   the chip must be enabled for programming (Vpp on and Vdd set to normal).
+*   The locations should also have not been programmed since last erased.  This
+*   routine does not perform an erase before write cycle on each word.  It
+*   assumes that the entire chip has been bulk erased.  An actual write is
+*   avoided when the data value for a word matches the erased value, which is
+*   all implemented bits 1.  MASK is used to determine which bits are
+*   implemented.
 *
-*   This is a low level routine that does not check whether the address
-*   range is valid for this target.  The write operations are performed
-*   as requested but not verified.  The current address is left at the
-*   last address written plus 1.
+*   This is a low level routine that does not check whether the address range is
+*   valid for this target.  The write operations are performed as requested but
+*   not verified.  The current address is left at the last address written plus
+*   1.
 *
-*   This version of the array write routine sends a ADR command to the
-*   target followed by one WRITE command for each word.  The commands
-*   are overlapped to the extent possible.  The overlapping pipeline
-*   is drained before this routine returns, so it is more efficient
-*   to call it once with a large array than several times with smaller
-*   arrays.
+*   This version of the array write routine sends a ADR command to the target
+*   followed by one WRITE command for each word.  The commands are overlapped to
+*   the extent possible.  The overlapping pipeline is drained before this
+*   routine returns, so it is more efficient to call it once with a large array
+*   than several times with smaller arrays.
 *
 *   Whole write buffers full are always written.  If the supplied information
-*   does not completely cover a write buffer, then the remaining words are
-*   sent as all 1s.  Since this is the erased value and write operations can
-*   generally only change 1 bits to 0, sending all 1s has the effect of
-*   leaving the original value intact.
+*   does not completely cover a write buffer, then the remaining words are sent
+*   as all 1s.  Since this is the erased value and write operations can
+*   generally only change 1 bits to 0, sending all 1s has the effect of leaving
+*   the original value intact.
 *
-*   If all supplied bits in a write buffer are 1, write buffer applies
-*   to the address, and write buffer is enabled, then the write is skipped.
-*   If PICPRG_FLAG_W1_K is set in PR.FLAGS, then write buffer use is
-*   disabled, all writes are performed as single words, and no writes are
-*   skipped if all bits are 1.
+*   If all supplied bits in a write buffer are 1, write buffer applies to the
+*   address, and write buffer is enabled, then the write is skipped.  If
+*   PICPRG_FLAG_W1_K is set in PR.FLAGS, then write buffer use is disabled, all
+*   writes are performed as single words, and no writes are skipped if all bits
+*   are 1.
 *
 *   The write buffer, if used, must be a power of 2 in size.
 }
@@ -178,8 +177,8 @@ begin
   a := adr;                            {init current address to first word in DAT}
   while a <= adrlast do begin          {keep looping until all words in DAT used}
 {
-*   Set WBSZ to the size of the write buffer for the current conditions
-*   at address A.
+*   Set WBSZ to the size of the write buffer for the current conditions at
+*   address A.
 }
     wbsz := 1;                         {init to single word writes}
     if pr.space <> picprg_space_prog_k {not in program memory address space ?}
@@ -202,8 +201,8 @@ have_wbsz:                             {WBSZ is size of write buffer to use}
     abst := i * wbsz;                  {this write buffer chunk start address}
     aben := abst + wbsz - 1;           {this write buffer chunk end address}
 {
-*   Fill in local copy of the write buffer with the appropriate data words.
-*   The Z flag will be set if one or more valid data bits are zero.
+*   Fill in local copy of the write buffer with the appropriate data words.  The
+*   Z flag will be set if one or more valid data bits are zero.
 }
     z := false;                        {init to no zero data bits}
     for a := abst to aben do begin     {once for each adr covered by this write buf}
