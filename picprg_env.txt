@@ -1,5 +1,5 @@
                          PICPRG.ENV File Format
-                            22 October 2018
+                            29 October 2022
 
 This document describes the format of the PICPRG.ENV file, which contains
 static information for the PICPRG library.  This file is an Embed Inc
@@ -86,6 +86,11 @@ Commands
       18
 
         PIC18 family.  These have a 16 bit ID word.
+
+      18B
+
+        PIC18 using 8 bit programming opcodes, like 18F25Q10.  These have
+        a 32 bit ID word.
 
       30
 
@@ -593,6 +598,29 @@ Commands
         Erase: 18K80
 
         Write: 18F2520
+
+      18F25Q10  -  For 18F25Q10 and related.  These devices use 8 bit
+          programming commands. Program memory is read and written in 16
+          bit words, data (EEPROM) in 8 bit words.
+
+        Reset: 18B
+
+          Vpp before Vdd if programmer can hit the Vpp level.  Otherwise
+          key sequence is clocked in MSB to LSB with Vpp held low the
+          whole time.
+
+        Read: 18F25Q10
+
+          LOAD PC (80h), READ AND INCREMENT (FEh).
+
+        Write: 18F25Q10
+
+          LOAD PC (80h), WRITE AND INCREMENT (E0h).
+
+        Erase: 18F25Q10
+
+          PC to 300000h and bulk erase, then to 310000h and bulk erase. 75
+          ms wait after each bulk erase.  LOAD PC (80h), BULK ERASE (18h).
 
       24F  -  PIC 24F parts
 

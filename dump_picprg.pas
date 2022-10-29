@@ -2,7 +2,7 @@
 *
 *   Write all the information in the global PICPRG.ENV file to PICPRG.ENV in the
 *   current directory.  The data is sorted by PIC name and written in a
-*   consistend format.  This program is intended for cleaning up the PICPRG.ENV
+*   consistent format.  This program is intended for cleaning up the PICPRG.ENV
 *   file after manual editing.
 }
 program dump_picprg;
@@ -696,6 +696,7 @@ picprg_idspace_12_k: wtks ('12');
 picprg_idspace_16_k: wtks ('16');
 picprg_idspace_16b_k: wtks ('16B');
 picprg_idspace_18_k: wtks ('18');
+picprg_idspace_18b_k: wtks ('18B');
 picprg_idspace_30_k: wtks ('30');
 otherwise
       writeln ('Encountered unexpected namespace ID of ', ord(pic.idspace));
@@ -778,6 +779,7 @@ picprg_picfam_18j_k: wtks ('18J');
 picprg_picfam_18k80_k: wtks ('18K80');
 picprg_picfam_18f14k22_k: wtks ('18F14K22');
 picprg_picfam_18f14k50_k: wtks ('18F14K50');
+picprg_picfam_18f25q10_k: wtks ('18F25Q10');
 picprg_picfam_30f_k: wtks ('30F');
 picprg_picfam_24h_k: wtks ('24H');
 picprg_picfam_24f_k: wtks ('24F');
@@ -985,7 +987,7 @@ otherwise                              {normal config word handling}
 picprg_idspace_30_k: begin
         doother_30 (pic);
         end;
-otherwise                              {normal config word handling}
+otherwise                              {normal OTHER word handling}
       adr_p := pic.other_p;
       while adr_p <> nil do begin      {loop thru the OTHER addresses}
         ws ('  '(0));

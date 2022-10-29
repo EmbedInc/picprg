@@ -50,7 +50,7 @@ var
 
 label
   done_18j, done_24h, done_33ep, done_16f182x, done_16f153xx, done_16f72x,
-  done_16fb, done_18lv, done_18k, done_62x, done_16f18f, done_30f,
+  done_16fb, done_18b, done_18lv, done_18k, done_62x, done_16f18f, done_30f,
   have_idblock, wrongpic, leave;
 {
 ****************************************
@@ -246,6 +246,64 @@ begin
 {
 ****************************************
 *
+*   Local subroutine CHECK_18B (RESP, STAT)
+*
+*   Check for target chip responds to the 8 bit programming commands for a PIC
+*   18.
+*
+*   RESP will be returned TRUE if it does and FALSE if it does not.  The target
+*   chip will be reset according to the current reset algorithm before an
+*   attempt is made to communicate with it.  The target chip will be left
+*   partway thru a programming command and should be reset before further
+*   attempts are made to communicate with it.
+}
+procedure check_18b (                  {check for response to 8 bit PIC 18 commands}
+  out     resp: boolean;               {TRUE iff received a response from the chip}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+begin
+  picprg_vddlev (pr, picprg_vdd_norm_k, stat); {configure for normal Vdd level}
+  if sys_error(stat) then return;
+  picprg_reset (pr, stat);             {reset the target chip}
+  if sys_error(stat) then return;
+{
+*   Send a READ DATA FROM NVM command and verify that the chip responds to it by
+*   driving and not driving the PGD line at appropriate places in the handshake.
+*
+*   Note that the PICPRG_SEND routine is used to send the opcode.  That routine
+*   sends in least to most significant bit order.  On the 16B PICs, data is sent
+*   in most to least significant bit order.  The opcode is therefore flipped.
+*   The opcode to read data from the target is FCh.  Flipping this around yields
+*   3Fh.
+}
+  picprg_send (pr, 7, 16#3F, stat);    {send all but last bit of opcode}
+  if sys_error(stat) then return;
+
+  picprg_cmdw_tdrive (pr, resp, stat); {check whether target is driving data line}
+  if sys_error(stat) then return;
+  if resp then begin                   {target driving PGD when it shouldn't be ?}
+    resp := false;                     {indicate not valid PIC 16 response}
+    return;
+    end;
+
+  picprg_send (pr, 1, 0, stat);        {send last bit of the opcode}
+  if sys_error(stat) then return;
+
+  picprg_cmdw_clkh (pr, stat);         {do clock pulse for dummy start bit}
+  if sys_error(stat) then return;
+  picprg_cmdw_clkl (pr, stat);
+  if sys_error(stat) then return;
+
+  picprg_cmdw_clkh (pr, stat);         {raise clock for first real data bit}
+  if sys_error(stat) then return;
+
+  picprg_cmdw_tdrive (pr, resp, stat); {check for target driving data line}
+  if sys_error(stat) then return;
+  end;
+{
+****************************************
+*
 *   Local subroutine CHECK_30 (RESP, STAT)
 *
 *   Check for target chip responds to normal dsPIC programming commands.
@@ -435,6 +493,67 @@ begin
 {
 ****************************************
 *
+*   Local subroutine GETID_18B (ID, STAT)
+*
+*   Get the chip ID using the 8 bit PIC 18 command set and assuming the current
+*   reset algorithm selection is appropriate.
+*
+*   These parts have the ID word at 3FFFFEh, and a revision word at 3FFFFCh.  We
+*   return the ID in the high 16 bits and the revision in the low 16 bits.
+}
+procedure getid_18b (                  {get ID using 8 bit PIC 18 prog commands}
+  out     id: picprg_chipid_t;         {returned chip ID in low bits, 0 = none}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+const
+  tdly = 1.0e-6;                       {wait after opcode of ordinary commands}
+
+var
+  ii, jj: sys_int_machine_t;           {scratch integers and loop counter}
+
+begin
+  id := 0;                             {init to not returning with valid ID}
+
+  picprg_reset (pr, stat);             {reset the target chip}
+  if sys_error(stat) then return;
+  picprg_cmdw_wait (pr, 0.010, stat);  {wait after reset}
+  if sys_error(stat) then return;
+
+  picprg_cmdw_send8m (pr, 16#80, stat); {set address to revision word}
+  if sys_error(stat) then return;
+  picprg_cmdw_wait (pr, tdly, stat);   {guarantee min wait after opcode}
+  if sys_error(stat) then return;
+  picprg_cmdw_send24m (pr, lshft(16#3FFFFC, 1), stat); {send address}
+  if sys_error(stat) then return;
+  picprg_cmdw_wait (pr, tdly, stat);   {guarantee min wait after data}
+  if sys_error(stat) then return;
+
+  picprg_cmdw_send8m (pr, 16#FE, stat); {read revision word into II, inc address}
+  if sys_error(stat) then return;
+  picprg_cmdw_wait (pr, tdly, stat);   {guarantee min wait after opcode}
+  if sys_error(stat) then return;
+  picprg_cmdw_recv24m (pr, ii, stat);
+  if sys_error(stat) then return;
+  picprg_cmdw_wait (pr, tdly, stat);   {guarantee min wait after data}
+  if sys_error(stat) then return;
+  ii := rshft(ii, 1) & 16#FFFF;        {extract just the data bits}
+
+  picprg_cmdw_send8m (pr, 16#FE, stat); {read ID word into JJ}
+  if sys_error(stat) then return;
+  picprg_cmdw_wait (pr, tdly, stat);   {guarantee min wait after opcode}
+  if sys_error(stat) then return;
+  picprg_cmdw_recv24m (pr, jj, stat);
+  if sys_error(stat) then return;
+  picprg_cmdw_wait (pr, tdly, stat);   {guarantee min wait after data}
+  if sys_error(stat) then return;
+  jj := rshft(jj, 1) & 16#FFFF;        {extract just the data bits}
+
+  id := lshft(jj, 16) ! ii;            {return combined ID and revision}
+  end;
+{
+****************************************
+*
 *   Local subroutine GETID_30 (ID, VISI, TBLPAG, STAT)
 *
 *   Get the chip ID using the normal PIC30 command set and assuming the
@@ -590,7 +709,7 @@ done_33ep:
     end;
 done_16f182x:
 
-  config (picprg_reset_16f153xx_k, 3.3, 3.3, stat); {select reset method and voltages}
+  config (picprg_reset_62x_k, 3.3, 3.3, stat); {select reset method and voltages}
   if sys_error(stat) then goto done_16f153xx; {this PIC type not supported by programmer}
   check_16b (resp, stat);              {check for response to PIC16 prog commands}
   if sys_error(stat) then return;
@@ -636,6 +755,20 @@ done_16f72x:
       end;
     end;
 done_16fb:
+
+  config (picprg_reset_62x_k, 3.3, 8.5, stat); {select reset method and voltages}
+  if sys_error(stat) then goto done_18b; {this PIC type not supported by programmer}
+  check_18b (resp, stat);              {check for response to readback command}
+  if sys_error(stat) then return;
+  if resp then begin                   {a response was received from the chip ?}
+    getid_18b (id, stat);              {try to read the chip ID}
+    if sys_error(stat) then return;
+    if id <> 0 then begin              {got the ID ?}
+      idspace := picprg_idspace_18b_k; {indicate PIC18 with 8 bit commands ID namespace}
+      goto leave;
+      end;
+    end;
+done_18b:
 
   config (picprg_reset_18f_k, 3.3, 8.5, stat); {select reset method and voltages}
   if sys_error(stat) then goto done_18lv; {this PIC type not supported by programmer}

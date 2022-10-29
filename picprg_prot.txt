@@ -1,5 +1,5 @@
          Embed Inc PIC Programmers Host Protocol Specification
-                    Version 29.11, 14 December 2021
+                    Version 29.12, 29 October 2022
 
 This document describes the Embed Inc PIC programmer communications
 protocol.  This protocol is used to communicate between a host computer
@@ -262,6 +262,9 @@ Revisions
 
          Added reset ID 13 to support 16F153xx.
 
+    29.12 29 Oct 2022
+
+         Added read ID 9 and write ID 15 to support 18F25Q10 and related.
 
 Overview
 
@@ -887,6 +890,17 @@ Commands
            All pervious PIC 16 used roughly the same protocol with 6 bit
            opcodes.
 
+       14 (Version 29, optional): For 16F183xx and related.  The used are
+           LOAD DATA FOR NVM (2), LOAD DATA FOR NVM and increment adr
+           (34), BEGIN EXTERNALLY TIMED PROGRAMMING (24), END PROGRAMMING
+           (10), BEGIN INTERNALLY TIME PROGRAMMING (8), LOAD PC ADDRESS
+           (29), and INCREMENT ADDRESS (6).
+
+       15 (Version 29, optional): For 18Fxxxx that use the programming
+           protocol with 8 bit opcodes and data is passed in a 24 bit
+           word, like 18F25Q10.  Similar to write algorithm 13, but for
+           the PIC 18 architecture, and some different opcode values.
+
   WBUFSZ: 63 <size>
        (Version 14, optional)
 
@@ -942,6 +956,11 @@ Commands
 
        7 (Version 29, optional):  For 16F PICs that use 8 bit programming
            commands, like the 16F15356.
+
+       8 (Version 29, optional):  For 16F183xx and related.
+
+       9 (Version 29, optional):  For PIC 18 that use the 8 bit
+           programming commands, like 18F25Q10.
 
   TEST1: 27
        (Optional at version 10 or higher)

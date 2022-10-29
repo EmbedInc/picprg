@@ -137,6 +137,7 @@ type
     picprg_picfam_18k80_k,             {18FxxK80}
     picprg_picfam_18f14k22_k,          {18FxxK22}
     picprg_picfam_18f14k50_k,          {18FxxK50}
+    picprg_picfam_18f25q10_k,          {18F with 8 bit programming commands}
     picprg_picfam_30f_k,               {PIC 30 (dsPIC)}
     picprg_picfam_24h_k,               {24H and 33F dsPIC types}
     picprg_picfam_24f_k,               {24F parts}
@@ -159,6 +160,7 @@ type
     picprg_reset_33ep_k = 12,          {24EP and 33EP parts}
     picprg_reset_16f153xx_k = 13);     {Vdd on, Vpp off, "MCHP" MSB to LSB}
 
+
   picprg_reset_t = set of bitsize 32 eletype picprg_reset_k_t;
 
   picprg_write_k_t = (                 {IDs for the possible write algorithms}
@@ -176,7 +178,8 @@ type
     picprg_write_16f88x_k = 11,        {BEGIN PROG 24, END PROG 10}
     picprg_write_16f182x_k = 12,       {BEGIN PROG 24 END PROG 10, config: BEGIN PROG 8}
     picprg_write_16fb_k = 13,          {8 bit programming opcodes, like 16F15313}
-    picprg_write_16f183xx_k = 14);     {16F183xx and related}
+    picprg_write_16f183xx_k = 14,      {16F183xx and related}
+    picprg_write_16f25q10_k = 15);     {PIC 18 with 8 bit programming commands}
   picprg_write_t = set of bitsize 32 eletype picprg_write_k_t;
 
   picprg_read_k_t = (                  {IDs for the possible read algorithms}
@@ -188,7 +191,8 @@ type
     picprg_read_18fe_k = 5,            {generic 18F, both program and EEPROM space}
     picprg_read_16fe_k = 6,            {enhanced (4 digit) 16F}
     picprg_read_16fb_k = 7,            {enhanced 16F with 8 bit opcodes, like 16F15313}
-    picprg_read_16f183xx_k = 8);       {16F183xx and similar}
+    picprg_read_16f183xx_k = 8,        {16F183xx and similar}
+    picprg_read_18f25q10_k = 9);       {PIC 18 with 8 bit programming commands}
 
   picprg_read_t = set of bitsize 32 eletype picprg_read_k_t;
 
@@ -201,6 +205,7 @@ type
     picprg_idspace_16_k,               {generic PIC16, 14 bit ID word}
     picprg_idspace_16b_k,              {PIC 16 using 8 bit programming opcodes}
     picprg_idspace_18_k,               {generic PIC18, 16 bit ID word}
+    picprg_idspace_18b_k,              {PIC 18 using 8 bit programming opcodes}
     picprg_idspace_12_k,               {generic 12 bit core, no chip ID}
     picprg_idspace_30_k);              {PIC 30 (dsPIC)}
 

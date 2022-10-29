@@ -1,4 +1,4 @@
-{   Routines that deal environment file descriptors.
+{   Routines that deal with environment file descriptors.
 }
 module picprg_env;
 define picprg_env_read;
@@ -218,6 +218,7 @@ begin
   string_appends (famnames, ' 33EP'(0)); {33}
   string_appends (famnames, ' 16F15313'(0)); {34}
   string_appends (famnames, ' 16F183XX'(0)); {35}
+  string_appends (famnames, ' 18F25Q10'(0)); {36}
 {
 *   Loop back here to read each new line from the environment file set.
 }
@@ -260,7 +261,7 @@ loop_line:
   string_token (buf, p, tk, stat);     {get ID namespace name string}
   string_upcase (tk);                  {make upper case for keyword matching}
   string_tkpick80 (tk,                 {pick namespace name from list}
-    '16 16B 18 12 30',
+    '16 16B 18 12 30 18B',
     pick);                             {number of name picked from the list}
   case pick of
 1:  idspace := picprg_idspace_16_k;
@@ -268,6 +269,7 @@ loop_line:
 3:  idspace := picprg_idspace_18_k;
 4:  idspace := picprg_idspace_12_k;
 5:  idspace := picprg_idspace_30_k;
+6:  idspace := picprg_idspace_18b_k;
 otherwise
     goto err_parm;                     {invalid ID namespace name, parameter error}
     end;
@@ -603,6 +605,11 @@ done_vdd:                              {done with all name tokens}
       idblock_p^.wblen := 16#8000;
       idblock_p^.adrres := 0;          {reset sets address to 0}
       idblock_p^.adrreskn := true;
+      end;
+36: begin
+      idblock_p^.fam := picprg_picfam_18f25q10_k;
+      idblock_p^.wblen := 0;
+      idblock_p^.adrreskn := false;
       end;
 otherwise
     sys_stat_set (picprg_subsys_k, picprg_stat_badfam_k, stat);
