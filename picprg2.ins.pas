@@ -191,6 +191,11 @@ procedure picprg_erase_12 (            {erase routine for generic 12 bit core de
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
+procedure picprg_erase_12f1501(        {erase routine enhanced 14 bit core, no EEPROM}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
 procedure picprg_erase_12f6xx (        {erase routine for 12F6xx}
   in out  pr: picprg_t;                {state for this use of the library}
   out     stat: sys_err_t);            {completion status}
@@ -256,22 +261,17 @@ procedure picprg_erase_16fb(           {erase routine for 16F15313 and related}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
-procedure picprg_erase_12f1501(        {erase routine enhanced 14 bit core, no EEPROM}
-  in out  pr: picprg_t;                {state for this use of the library}
-  out     stat: sys_err_t);            {completion status}
-  val_param; extern;
-
 procedure picprg_erase_18f (           {erase routine for generic 18Fxxx}
   in out  pr: picprg_t;                {state for this use of the library}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
-procedure picprg_erase_18f2520 (       {erase routine for 18F2520 and related}
+procedure picprg_erase_18f14k22 (      {erase routine for 18F14k22 and related}
   in out  pr: picprg_t;                {state for this use of the library}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
-procedure picprg_erase_18f14k22 (      {erase routine for 18F14k22 and related}
+procedure picprg_erase_18f2520 (       {erase routine for 18F2520 and related}
   in out  pr: picprg_t;                {state for this use of the library}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
@@ -287,6 +287,11 @@ procedure picprg_erase_18f6310 (       {erase routine for 18F6310 and related}
   val_param; extern;
 
 procedure picprg_erase_18f25j10 (      {erase routine for 18F25J10 and related}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
+procedure picprg_erase_18f25q10 (      {erase routine for 18F25Q10 and related}
   in out  pr: picprg_t;                {state for this use of the library}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
@@ -379,21 +384,15 @@ procedure picprg_send6 (               {send 6 bits of data to the target}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
-procedure picprg_send14mss24 (         {send 14 bit payload in 24 bit word, MSB first}
-  in out  pr: picprg_t;                {state for this use of the library}
-  in      dat: sys_int_machine_t;      {data to send in the low 14 bits}
-  out     stat: sys_err_t);            {completion status}
-  val_param; extern;
-
 procedure picprg_send8mss24 (          {send 8 bit payload in 24 bit word, MSB first}
   in out  pr: picprg_t;                {state for this use of the library}
   in      dat: sys_int_machine_t;      {data to send in the low 8 bits}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
-procedure picprg_send14ss (            {send 14 data bits with start/stop bits}
+procedure picprg_send14mss24 (         {send 14 bit payload in 24 bit word, MSB first}
   in out  pr: picprg_t;                {state for this use of the library}
-  in      dat: sys_int_conv16_t;       {the data word to send}
+  in      dat: sys_int_machine_t;      {data to send in the low 14 bits}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
@@ -406,6 +405,12 @@ procedure picprg_send16mss24 (         {send 16 bit payload in 24 bit word, MSB 
 procedure picprg_send22mss24 (         {send 22 bit payload in 24 bit word, MSB first}
   in out  pr: picprg_t;                {state for this use of the library}
   in      dat: sys_int_machine_t;      {data to send in the low 16 bits}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
+procedure picprg_send14ss (            {send 14 data bits with start/stop bits}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      dat: sys_int_conv16_t;       {the data word to send}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 

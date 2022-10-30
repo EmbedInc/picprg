@@ -12,6 +12,7 @@ call src_pas %srcdir% %libname%_12f6 %1
 call src_pas %srcdir% %libname%_16 %1
 call src_pas %srcdir% %libname%_16fb %1
 call src_pas %srcdir% %libname%_18 %1
+call src_pas %srcdir% %libname%_18b %1
 call src_pas %srcdir% %libname%_30 %1
 call src_pas %srcdir% %libname%_close %1
 call src_pas %srcdir% %libname%_cmdovl %1

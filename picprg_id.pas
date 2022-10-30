@@ -929,6 +929,18 @@ picprg_idspace_18_k: begin
     then goto wrongpic;
   end;
 {
+*   PIC 18 using 8 bit programming opcodes.
+}
+picprg_idspace_18b_k: begin
+  check_18b (resp, stat);              {check for responds to the right read command}
+  if sys_error(stat) then return;
+  if not resp then goto wrongpic;
+  getid_18b (id, stat);                {read the chip ID}
+  if sys_error(stat) then return;
+  if (id & id_p^.mask) <> id_p^.id     {check the device ID bits only}
+    then goto wrongpic;
+  end;
+{
 *   dsPIC.
 }
 picprg_idspace_30_k: begin

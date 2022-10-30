@@ -179,7 +179,7 @@ type
     picprg_write_16f182x_k = 12,       {BEGIN PROG 24 END PROG 10, config: BEGIN PROG 8}
     picprg_write_16fb_k = 13,          {8 bit programming opcodes, like 16F15313}
     picprg_write_16f183xx_k = 14,      {16F183xx and related}
-    picprg_write_16f25q10_k = 15);     {PIC 18 with 8 bit programming commands}
+    picprg_write_18f25q10_k = 15);     {PIC 18 with 8 bit programming commands}
   picprg_write_t = set of bitsize 32 eletype picprg_write_k_t;
 
   picprg_read_k_t = (                  {IDs for the possible read algorithms}

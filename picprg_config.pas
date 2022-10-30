@@ -1271,6 +1271,58 @@ picprg_picfam_12f1501_k: begin         {enhanced 14 bit core without EEPROM}
         univ_ptr(addr(picprg_read_gen));
       end;
 
+picprg_picfam_18f25q10_k: begin        {PIC 18 with 8 bit programming opcodes, like 18F25Q10}
+      r := (idb.vppmin + idb.vppmax) / 2.0; {make desired Vpp voltage}
+      r := max(pr.fwinfo.vppmin, min(pr.fwinfo.vppmax, r)); {clip to programmer's range}
+      didit := false;                  {init to no reset algorithm selected}
+      if                               {programmer can do normal high voltage Vpp method ?}
+          pr.hvpenab and               {allowed by the user ?}
+          (r >= idb.vppmin) and (r <= idb.vppmax) and {prog can hit required Vpp range ?}
+          (picprg_reset_62x_k in pr.fwinfo.idreset) {can do required reset algorithm ?}
+        then begin
+          picprg_cmdw_idreset (pr, picprg_reset_62x_k, false, stat);
+          if sys_error(stat) then return;
+          didit := true;
+          end
+        else begin                     {can't do HVP, try key sequence method}
+          if                           {programmer can do key sequence prog entry method ?}
+              pr.lvpenab and           {allowed by the user ?}
+              (picprg_reset_16f153xx_k in pr.fwinfo.idreset) {can do key sequence ?}
+              then begin
+            picprg_cmdw_idreset (pr, picprg_reset_16f153xx_k, true, stat); {set key seq algorithm}
+            if sys_error(stat) then return;
+            if pr.fwinfo.cmd[61] then begin {prog has Vpp command ?}
+              picprg_cmdw_vpp (pr, idb.vdd.norm, stat); {set Vpp to Vdd level}
+              if sys_error(stat) then return;
+              end;
+            donevpp := true;           {Vpp config all set, don't try setting later}
+            didit := true;
+            end;
+          end
+        ;                              {done setting up reset algorithm}
+      if not didit then begin          {unable to find reset algorithm}
+        if (pr.hvpenab and pr.lvpenab) then goto not_implemented;
+        goto not_supp_opt;
+        end;
+
+      picprg_cmdw_idwrite (pr, picprg_write_18f25q10_k, stat);
+      if sys_stat_match (picprg_subsys_k, picprg_stat_writnimp_k, stat)
+        then goto not_implemented;
+      if sys_error(stat) then return;
+
+      picprg_cmdw_idread (pr, picprg_read_18f25q10_k, stat);
+      if sys_stat_match (picprg_subsys_k, picprg_stat_readnimp_k, stat)
+        then goto not_implemented;
+      if sys_error(stat) then return;
+
+      pr.erase_p :=                    {install erase routine}
+        univ_ptr(addr(picprg_erase_18f25q10));
+      pr.write_p :=                    {install array write routine}
+        univ_ptr(addr(picprg_write_targw));
+      pr.read_p :=                     {install array read routine}
+        univ_ptr(addr(picprg_read_gen));
+      end;
+
 otherwise                              {not a recognized PIC family type}
     sys_stat_set (picprg_subsys_k, picprg_stat_unkfam_k, stat);
     return;
