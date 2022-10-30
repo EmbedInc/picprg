@@ -361,6 +361,12 @@ procedure picprg_recv14mss24 (         {receive 24 bit MSB-first word, get 14 bi
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
+procedure picprg_recv16mss24 (         {receive 24 bit MSB-first word, get 16 bit payload}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     dat: sys_int_machine_t;      {returned 16 bit payload}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
 function picprg_sec_ticks (            {convert seconds to min clock ticks}
   in out  pr: picprg_t;                {state for this use of the library}
   in      sec: real)                   {seconds}
@@ -373,9 +379,15 @@ procedure picprg_send6 (               {send 6 bits of data to the target}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
-procedure picprg_send14mss24 (         {send 14 bits of data in 24 bit word, MSB first}
+procedure picprg_send14mss24 (         {send 14 bit payload in 24 bit word, MSB first}
   in out  pr: picprg_t;                {state for this use of the library}
   in      dat: sys_int_machine_t;      {data to send in the low 14 bits}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
+procedure picprg_send8mss24 (          {send 8 bit payload in 24 bit word, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      dat: sys_int_machine_t;      {data to send in the low 8 bits}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
@@ -385,7 +397,13 @@ procedure picprg_send14ss (            {send 14 data bits with start/stop bits}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
-procedure picprg_send16mss24 (         {send 16 bits of data in 24 bit word, MSB first}
+procedure picprg_send16mss24 (         {send 16 bit payload in 24 bit word, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      dat: sys_int_machine_t;      {data to send in the low 16 bits}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
+procedure picprg_send22mss24 (         {send 22 bit payload in 24 bit word, MSB first}
   in out  pr: picprg_t;                {state for this use of the library}
   in      dat: sys_int_machine_t;      {data to send in the low 16 bits}
   out     stat: sys_err_t);            {completion status}

@@ -524,8 +524,7 @@ begin
   if sys_error(stat) then return;
   picprg_cmdw_wait (pr, tdly, stat);   {guarantee min wait after opcode}
   if sys_error(stat) then return;
-  picprg_cmdw_send24m (pr, lshft(16#3FFFFC, 1), stat); {send address}
-  if sys_error(stat) then return;
+  picprg_send22mss24 (pr, 16#3FFFFC, stat); {send address}
   picprg_cmdw_wait (pr, tdly, stat);   {guarantee min wait after data}
   if sys_error(stat) then return;
 
@@ -533,21 +532,19 @@ begin
   if sys_error(stat) then return;
   picprg_cmdw_wait (pr, tdly, stat);   {guarantee min wait after opcode}
   if sys_error(stat) then return;
-  picprg_cmdw_recv24m (pr, ii, stat);
+  picprg_recv16mss24 (pr, ii, stat);   {get 16 bit revision}
   if sys_error(stat) then return;
   picprg_cmdw_wait (pr, tdly, stat);   {guarantee min wait after data}
   if sys_error(stat) then return;
-  ii := rshft(ii, 1) & 16#FFFF;        {extract just the data bits}
 
   picprg_cmdw_send8m (pr, 16#FE, stat); {read ID word into JJ}
   if sys_error(stat) then return;
   picprg_cmdw_wait (pr, tdly, stat);   {guarantee min wait after opcode}
   if sys_error(stat) then return;
-  picprg_cmdw_recv24m (pr, jj, stat);
+  picprg_recv16mss24 (pr, jj, stat);   {get 16 bit chip ID}
   if sys_error(stat) then return;
   picprg_cmdw_wait (pr, tdly, stat);   {guarantee min wait after data}
   if sys_error(stat) then return;
-  jj := rshft(jj, 1) & 16#FFFF;        {extract just the data bits}
 
   id := lshft(jj, 16) ! ii;            {return combined ID and revision}
   end;

@@ -1,12 +1,15 @@
 {   Routines that are specific to the PICs that use 8 bit programming opcodes
-*   and transfer programming data in 24 bit words.  These include the PIC
-*   16F15313 and related.
+*   and transfer programming data in 24 bit words.  These include the PICs
+*   16F15313, 18F25Q10, and others.
 }
 module picprg_16fb;
-define picprg_send16mss24;
+define picprg_send8mss24;
 define picprg_send14mss24;
+define picprg_send16mss24;
+define picprg_send22mss24;
 define picprg_recv8mss24;
 define picprg_recv14mss24;
+define picprg_recv16mss24;
 define picprg_erase_16fb;
 %include 'picprg2.ins.pas';
 
@@ -16,20 +19,40 @@ const
   }
   opc_adr = 16#80;                     {LOAD PC ADRESS}
   opc_ebulk = 16#18;                   {BULK ERASE PROGRAM MEMORY}
-  (*
-  *   These opcodes are not used in the code below.  Their definitions are
-  *   commented out to avoid unused symbol errors.
-  *
-  opc_erow = 16#F0;                    {ROW ERASE PROGRAM MEMORY}
-  opc_ldat = 16#00;                    {LOAD DATA FOR NVM}
-  opc_ldat_inc = 16#02;                {LOAD DATA FOR NVM, increment address}
-  opc_rdat = 16#FC;                    {READ DATA FROM NVM}
-  opc_rdat_inc = 16#FE;                {READ DATA FROM NMV, increment address}
-  opc_inc = 16#F8;                     {INCREMENT ADDRESS}
-  opc_pgint = 16#E0;                   {BEGIN INTERNALLY TIMED PROGRAMMING}
-  opc_pgext = 16#C0;                   {BEGIN EXTERNALLY TIMED PROGRAMMING}
-  opc_pgextend = 16#82;                {END EXTERNALLY TIMED PROGRAMMING}
-  *)
+{
+********************************************************************************
+*
+*   Subroutine PICPRG_SEND8MSS24 (PR, DAT, STAT)
+*
+*   Send the 8 bit data in the low bits of DAT to the target in a 24 bit data
+*   word.  The word is sent in most to least significant bit order.
+}
+procedure picprg_send8mss24 (          {send 8 bit payload in 24 bit word, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      dat: sys_int_machine_t;      {data to send in the low 8 bits}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+begin
+  picprg_cmdw_send24m (pr, lshft(dat & 16#FF, 1), stat);
+  end;
+{
+********************************************************************************
+*
+*   Subroutine PICPRG_SEND14MSS24 (PR, DAT, STAT)
+*
+*   Send the 14 bit data in the low bits of DAT to the target in a 24 bit data
+*   word.  The word is sent in most to least significant bit order.
+}
+procedure picprg_send14mss24 (         {send 14 bit payload in 24 bit word, MSB first}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      dat: sys_int_machine_t;      {data to send in the low 14 bits}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+begin
+  picprg_cmdw_send24m (pr, lshft(dat & 16#3FFF, 1), stat);
+  end;
 {
 ********************************************************************************
 *
@@ -38,7 +61,7 @@ const
 *   Send the 16 bit data in the low bits of DAT to the target in a 24 bit data
 *   word.  The word is sent in most to least significant bit order.
 }
-procedure picprg_send16mss24 (         {send 16 bits of data in 24 bit word, MSB first}
+procedure picprg_send16mss24 (         {send 16 bit payload in 24 bit word, MSB first}
   in out  pr: picprg_t;                {state for this use of the library}
   in      dat: sys_int_machine_t;      {data to send in the low 16 bits}
   out     stat: sys_err_t);            {completion status}
@@ -50,19 +73,19 @@ begin
 {
 ********************************************************************************
 *
-*   Subroutine PICPRG_SEND14MSS24 (PR, DAT, STAT)
+*   Subroutine PICPRG_SEND22MSS24 (PR, DAT, STAT)
 *
-*   Send the 14 bit data in the low bits of DAT to the target in a 24 bit data
+*   Send the 22 bit data in the low bits of DAT to the target in a 24 bit data
 *   word.  The word is sent in most to least significant bit order.
 }
-procedure picprg_send14mss24 (         {send 14 bits of data in 24 bit word, MSB first}
+procedure picprg_send22mss24 (         {send 22 bit payload in 24 bit word, MSB first}
   in out  pr: picprg_t;                {state for this use of the library}
-  in      dat: sys_int_machine_t;      {data to send in the low 14 bits}
+  in      dat: sys_int_machine_t;      {data to send in the low 22 bits}
   out     stat: sys_err_t);            {completion status}
   val_param;
 
 begin
-  picprg_cmdw_send24m (pr, lshft(dat & 16#3FFF, 1), stat);
+  picprg_cmdw_send24m (pr, lshft(dat & 16#3FFFFF, 1), stat);
   end;
 {
 ********************************************************************************
@@ -82,8 +105,8 @@ var
   ii: sys_int_machine_t;
 
 begin
-  picprg_cmdw_recv24m (pr, ii, stat);
-  dat := rshft(ii, 1) & 16#FF;
+  picprg_cmdw_recv24m (pr, ii, stat);  {get the 24 bit word from the target}
+  dat := rshft(ii, 1) & 16#FF;         {extract the 8 bit payload}
   end;
 {
 ********************************************************************************
@@ -103,8 +126,29 @@ var
   ii: sys_int_machine_t;
 
 begin
-  picprg_cmdw_recv24m (pr, ii, stat);
-  dat := rshft(ii, 1) & 16#3FFF;
+  picprg_cmdw_recv24m (pr, ii, stat);  {get the 24 bit word from the target}
+  dat := rshft(ii, 1) & 16#3FFF;       {extract the 14 bit payload}
+  end;
+{
+********************************************************************************
+*
+*   Subroutine PICPRG_RECV16MSS24 (PR, DAT, STAT)
+*
+*   Receive a 24 bit word from the target in most to least significant bit
+*   order.  Return the 16 bit payload in DAT.
+}
+procedure picprg_recv16mss24 (         {receive 24 bit MSB-first word, get 16 bit payload}
+  in out  pr: picprg_t;                {state for this use of the library}
+  out     dat: sys_int_machine_t;      {returned 16 bit payload}
+  out     stat: sys_err_t);            {completion status}
+  val_param;
+
+var
+  ii: sys_int_machine_t;
+
+begin
+  picprg_cmdw_recv24m (pr, ii, stat);  {get the 24 bit word from the target}
+  dat := rshft(ii, 1) & 16#FFFF;       {extract the 16 bit payload}
   end;
 {
 ********************************************************************************
