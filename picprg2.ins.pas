@@ -465,6 +465,15 @@ function picprg_volt_vdd (             {make internal Vdd value from volts}
   :int8u_t;                            {internal vdd value}
   val_param; extern;
 
+procedure picprg_write_16f72x (        {array write, special for 16F72x config words}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      adr: picprg_adr_t;           {starting address to write to}
+  in      n: picprg_adr_t;             {number of locations to write}
+  in      dat: univ picprg_datar_t;    {array of data to write}
+  in      mask: picprg_maskdat_t;      {mask for valid bits in each data word}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
 procedure picprg_write_18 (            {array write for program space of PIC18 parts}
   in out  pr: picprg_t;                {state for this use of the library}
   in      adr: picprg_adr_t;           {starting address to write to}
@@ -492,25 +501,16 @@ procedure picprg_write_18f2520 (       {array write for 18F2520 family}
   out     stat: sys_err_t);            {completion status}
   val_param; extern;
 
-procedure picprg_write_targw (         {array write using programmer WRITE command}
-  in out  pr: picprg_t;                {state for this use of the library}
-  in      adr: picprg_adr_t;           {starting address to write to}
-  in      n: picprg_adr_t;             {number of locations to write}
-  in      dat: univ picprg_datar_t;    {array of data to write}
-  in      mask: picprg_maskdat_t;      {mask for valid bits in each data word}
-  out     stat: sys_err_t);            {completion status}
-  val_param; extern;
-
-procedure picprg_write_16f72x (        {array write, special for 16F72x config words}
-  in out  pr: picprg_t;                {state for this use of the library}
-  in      adr: picprg_adr_t;           {starting address to write to}
-  in      n: picprg_adr_t;             {number of locations to write}
-  in      dat: univ picprg_datar_t;    {array of data to write}
-  in      mask: picprg_maskdat_t;      {mask for valid bits in each data word}
-  out     stat: sys_err_t);            {completion status}
-  val_param; extern;
-
 procedure picprg_write_30pgm (         {array write for dsPIC program memory}
+  in out  pr: picprg_t;                {state for this use of the library}
+  in      adr: picprg_adr_t;           {starting address to write to}
+  in      n: picprg_adr_t;             {number of locations to write}
+  in      dat: univ picprg_datar_t;    {array of data to write}
+  in      mask: picprg_maskdat_t;      {mask for valid bits in each data word}
+  out     stat: sys_err_t);            {completion status}
+  val_param; extern;
+
+procedure picprg_write_targw (         {array write using programmer WRITE command}
   in out  pr: picprg_t;                {state for this use of the library}
   in      adr: picprg_adr_t;           {starting address to write to}
   in      n: picprg_adr_t;             {number of locations to write}

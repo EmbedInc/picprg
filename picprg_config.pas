@@ -1315,6 +1315,13 @@ picprg_picfam_18f25q10_k: begin        {PIC 18 with 8 bit programming opcodes, l
         then goto not_implemented;
       if sys_error(stat) then return;
 
+      if idb.ndat > 0 then begin       {this target has EEPROM ?}
+        picprg_cmdw_datadr (pr, idb.datmap, stat); {indicate where EEPROM is mapped to prog mem}
+        if sys_stat_match (picprg_subsys_k, picprg_stat_readnimp_k, stat)
+          then goto not_implemented;
+        if sys_error(stat) then return;
+        end;
+
       pr.erase_p :=                    {install erase routine}
         univ_ptr(addr(picprg_erase_18f25q10));
       pr.write_p :=                    {install array write routine}
