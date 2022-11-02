@@ -47,37 +47,60 @@ procedure picprg_id (                  {get the hard coded ID of the target chip
 
 var
   resp: boolean;                       {a response was received from the target chip}
+  stat2: sys_err_t;                    {to avoid corrupting STAT}
 
 label
-  done_18j, done_24h, done_33ep, done_16f182x, done_16f153xx, done_16f72x,
-  done_16fb, done_18b, done_18lv, done_18k, done_62x, done_16f18f, done_30f,
   have_idblock, wrongpic, leave;
 {
 ****************************************
 *
-*   Local subroutine CONFIG (RES, VDD, VPP, STAT)
+*   Local function CONFIG (RES, VDD, VPP)
 *
 *   Configure for a particular reset algorithm, Vdd voltage, and Vpp voltage.
-*   The nearest possible values are silently substituted if the programmer is
-*   not capable of the requested Vdd and Vpp voltages.  An error is returned if
-*   the programmer is not capable of the selected reset algorithm.
+*
+*   The nearest posible Vdd voltage is silently substituted.
+*
+*   When VPP is non-zero, then the programmer is configured for the particular
+*   Vpp voltage.  The function returns FALSE if the programmer is not capable
+*   of the requested Vpp voltage.
+*
+*   The special case of VPP 0.0 indicates that Vpp should be the same as
+*   whatever Vdd ends up.  This option is intended for key sequence program
+*   entry modes that do not use high voltage Vpp.  In this case, the function
+*   does not fail due to Vpp.
+*
+*   The function fails if the programmer does not implement the requested reset
+*   algorithm.
 }
-procedure config (                     {set configuration for communicating with target}
+function config (                      {try to set basic configuration}
   in      res: picprg_reset_k_t;       {reset algorithm ID}
   in      vdd: real;                   {Vdd voltage}
-  in      vpp: real;                   {Vpp voltage}
-  out     stat: sys_err_t);            {completion status}
+  in      vpp: real)                   {Vpp voltage}
+  :boolean;                            {was able to configure as requested}
   val_param; internal;
 
 var
   vddvppoff: boolean;                  {Vdd off before Vpp}
+  stat: sys_err_t;                     {completion status}
 
 begin
+  config := false;                     {init to not able to do config}
+
   pr.vdd.norm := vdd;                  {set the Vdd to use after next reset}
 
-  if pr.fwinfo.cmd[61] then begin
-    picprg_cmdw_vpp (pr, vpp, stat);   {set Vpp voltage to use}
-    if sys_error(stat) then return;
+  if vpp <> 0.0 then begin             {using high voltage Vpp program entry ?}
+    if pr.fwinfo.cmd[61]
+      then begin                       {programmer implements variable Vpp}
+        picprg_cmdw_vpp (pr, vpp, stat); {try to set the requested Vpp voltage}
+        if sys_error(stat) then return; {programmer can't to this Vpp ?}
+        end
+      else begin                       {programmer has fixed Vpp}
+        if                             {request outside error band of fixed Vpp ?}
+            (vpp < pr.fwinfo.vppmin) or
+            (vpp > pr.fwinfo.vppmax)
+          then return;
+        end
+      ;
     end;
 
   case res of
@@ -86,6 +109,9 @@ otherwise
     vddvppoff := false;
     end;
   picprg_cmdw_idreset (pr, res, vddvppoff, stat); {try to set the reset algorithm}
+  if sys_error(stat) then return;
+
+  config := true;                      {indicate success}
   end;
 {
 ****************************************
@@ -633,6 +659,192 @@ begin
 {
 ****************************************
 *
+*   Local functions IDSPACE_xx (IDSP, ID, STAT)
+*
+*   Try to get the chip ID of the target.
+*
+*   When the chip ID is found:
+*
+*     - IDSP is set to the ID space the ID is within.
+*
+*     - ID is set to the chip ID.
+*
+*     - STAT is set to no error.
+*
+*     - The function returns TRUE.
+*
+*   When the chip ID could not be determined:
+*
+*     - IDSP is set to UNK.
+*
+*     - ID is set to 0.
+*
+*     - STAT is set to indicate the error if a hard error was encountered.
+*
+*     - The function returns FALSE.
+*
+*   The reset method, Vdd level, and Vpp level must already be set.
+*
+*   The various IDSPACE_xx funtion differ in the algorithms they use in trying
+*   to find the chip ID.  These are separate functions so that only those
+*   algorithms that are valid for specific reset methods and Vdd/Vpp can be
+*   tried.
+}
+{
+**********
+}
+function idspace_16 (                  {find chip ID, original PIC 16}
+  out     idsp: picprg_idspace_k_t;    {returned namespace for ID}
+  out     id: sys_int_machine_t;       {returned chip ID}
+  out     stat: sys_err_t)             {completion status}
+  :boolean;                            {found ID, no error}
+  val_param; internal;
+
+var
+  resp: boolean;                       {got response from the target}
+
+begin
+  idspace_16 := false;                 {init to ID not found}
+  idsp := picprg_idspace_unk_k;
+  id := 0;
+  sys_error_none (stat);               {init to no error}
+
+  check_16 (resp, stat);               {check for response from target}
+  if sys_error(stat) then return;
+  if not resp then return;
+
+  getid_16 (id, stat);                 {try to read the chip ID}
+  if sys_error(stat) then return;
+  if id = 0 then return;               {didn't get chip ID ?}
+
+  idspace := picprg_idspace_16_k;      {return the ID space}
+  idspace_16 := true;                  {indicate success}
+  end;
+{
+**********
+}
+function idspace_16b (                 {find chip ID, PIC 16 with 8 bit prog commands}
+  out     idsp: picprg_idspace_k_t;    {returned namespace for ID}
+  out     id: sys_int_machine_t;       {returned chip ID}
+  out     stat: sys_err_t)             {completion status}
+  :boolean;                            {found ID, no error}
+  val_param; internal;
+
+var
+  resp: boolean;                       {got response from the target}
+
+begin
+  idspace_16b := false;                {init to ID not found}
+  idsp := picprg_idspace_unk_k;
+  id := 0;
+  sys_error_none (stat);               {init to no error}
+
+  check_16b (resp, stat);              {check for response from target}
+  if sys_error(stat) then return;
+  if not resp then return;
+
+  getid_16b (id, stat);                {try to read the chip ID}
+  if sys_error(stat) then return;
+  if id = 0 then return;               {didn't get chip ID ?}
+
+  idspace := picprg_idspace_16b_k;     {returne the ID space}
+  idspace_16b := true;                 {indicate success}
+  end;
+{
+**********
+}
+function idspace_18 (                  {find chip ID, original PIC 18}
+  out     idsp: picprg_idspace_k_t;    {returned namespace for ID}
+  out     id: sys_int_machine_t;       {returned chip ID}
+  out     stat: sys_err_t)             {completion status}
+  :boolean;                            {found ID, no error}
+  val_param; internal;
+
+var
+  resp: boolean;                       {got response from the target}
+
+begin
+  idspace_18 := false;                 {init to ID not found}
+  idsp := picprg_idspace_unk_k;
+  id := 0;
+  sys_error_none (stat);               {init to no error}
+
+  check_18 (resp, stat);               {check for response from target}
+  if sys_error(stat) then return;
+  if not resp then return;
+
+  getid_18 (id, stat);                 {try to read the chip ID}
+  if sys_error(stat) then return;
+  if id = 0 then return;               {didn't get chip ID ?}
+
+  idspace := picprg_idspace_18_k;      {return the ID space}
+  idspace_18 := true;                  {indicate success}
+  end;
+{
+**********
+}
+function idspace_18b (                 {find chip ID, PIC 18 with 8 bit prog commands}
+  out     idsp: picprg_idspace_k_t;    {returned namespace for ID}
+  out     id: sys_int_machine_t;       {returned chip ID}
+  out     stat: sys_err_t)             {completion status}
+  :boolean;                            {found ID, no error}
+  val_param; internal;
+
+var
+  resp: boolean;                       {got response from the target}
+
+begin
+  idspace_18b := false;                {init to ID not found}
+  idsp := picprg_idspace_unk_k;
+  id := 0;
+  sys_error_none (stat);               {init to no error}
+
+  check_18b (resp, stat);              {check for response from target}
+  if sys_error(stat) then return;
+  if not resp then return;
+
+  getid_18b (id, stat);                {try to read the chip ID}
+  if sys_error(stat) then return;
+  if id = 0 then return;               {didn't get chip ID ?}
+
+  idspace := picprg_idspace_18b_k;     {returne the ID space}
+  idspace_18b := true;                 {indicate success}
+  end;
+{
+**********
+}
+function idspace_30 (                  {find chip ID, dsPIC}
+  out     idsp: picprg_idspace_k_t;    {returned namespace for ID}
+  out     id: sys_int_machine_t;       {returned chip ID}
+  in      visi: sys_int_machine_t;     {address of Visi register}
+  in      tblpag: sys_int_machine_t;   {address of Tblpag register}
+  out     stat: sys_err_t)             {completion status}
+  :boolean;                            {found ID, no error}
+  val_param; internal;
+
+var
+  resp: boolean;                       {got response from the target}
+
+begin
+  idspace_30 := false;                 {init to ID not found}
+  idsp := picprg_idspace_unk_k;
+  id := 0;
+  sys_error_none (stat);               {init to no error}
+
+  check_30 (resp, stat);               {check for response from target}
+  if sys_error(stat) then return;
+  if not resp then return;
+
+  getid_30 (id, visi, tblpag, stat);   {try to read the chip ID}
+  if sys_error(stat) then return;
+  if id = 0 then return;               {didn't get chip ID ?}
+
+  idspace := picprg_idspace_30_k;      {return the ID space}
+  idspace_30 := true;                  {indicate success}
+  end;
+{
+****************************************
+*
 *   Start of main routine.
 }
 begin
@@ -647,220 +859,100 @@ begin
 *   scratch.
 }
 {
-*   Check for those PICs with Vdd and Vpp limited to 3.3V.  We have to check for
-*   these first so that if it is one of them we never apply higher voltage.
+*   Try finding the chip ID with 3.3 V Vdd and low voltage (key sequence)
+*   program mode entry method.  This doesn't subject the target to anything more
+*   than 3.3 V.
+*
+*   Note that this is only to find the chip ID.  Finding the ID with low voltage
+*   program mode entry doesn't proclude using high voltage program mode entry
+*   later, once the full capabilities of the chip are known.
 }
-  config (picprg_reset_18j_k, 3.3, 3.3, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_18j; {this PIC type not supported by programmer}
-  check_18 (resp, stat);               {check for response from PIC18 prog commands}
-  if sys_error(stat) then return;
-  if resp then begin                   {the proper response was received ?}
-    getid_18 (id, stat);               {get the chip ID using PIC18 method}
+  if config (picprg_reset_16f182x_k, 3.3, 0.0) then begin {try 16F182x key sequence}
+    if idspace_16 (idspace, id, stat) then goto leave;
     if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_18_k;  {indicate PIC18 ID namespace}
-      end;
-    goto leave;                        {return with the ID}
     end;
-done_18j:
 
-  config (picprg_reset_24h_k, 3.3, 3.3, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_24h; {this PIC type not supported by programmer}
-  check_30 (resp, stat);               {check for dsPIC 24H, 33F}
-  if sys_error(stat) then return;
-  if resp then begin                   {the proper response was received ?}
-    getid_30 (id, 16#784, 16#032, stat); {get the chip ID using dsPIC method}
+  if config (picprg_reset_16f153xx_k, 3.3, 0.0) then begin {try 16B key sequence}
+    if idspace_16b (idspace, id, stat) then goto leave;
     if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_30_k;  {indicate dsPIC ID namespace}
-      goto leave;                      {return with the ID}
-      end;
     end;
-done_24h:
 
-  config (picprg_reset_33ep_k, 3.3, 3.3, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_33ep; {this PIC type not supported by programmer}
-  check_30 (resp, stat);               {check for dsPIC 24EP, 33EP}
-  if sys_error(stat) then return;
-  if resp then begin                   {the proper response was received ?}
-    getid_30 (id, 16#F88, 16#054, stat); {get the chip ID using dsPIC method}
+  if config (picprg_reset_18j_k, 3.3, 0.0) then begin {try 18J key sequence}
+    if idspace_18 (idspace, id, stat) then goto leave;
     if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_30_k;  {indicate dsPIC ID namespace}
-      end;
-    goto leave;                        {return with the ID}
     end;
-done_33ep:
 
-  config (picprg_reset_16f182x_k, 3.3, 3.3, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_16f182x; {this PIC type not supported by programmer}
-  check_16 (resp, stat);               {check for response to PIC16 prog commands}
-  if sys_error(stat) then return;
-  if resp then begin                   {a response was received from the chip ?}
-    getid_16 (id, stat);               {try to read the chip ID}
+  if config (picprg_reset_18k80_k, 3.3, 0.0) then begin {try 18K80 key sequence}
+    if idspace_18 (idspace, id, stat) then goto leave;
     if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_16_k;  {indicate PIC16 ID namespace}
-      goto leave;
-      end;
     end;
-done_16f182x:
 
-  config (picprg_reset_62x_k, 3.3, 3.3, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_16f153xx; {this PIC type not supported by programmer}
-  check_16b (resp, stat);              {check for response to PIC16 prog commands}
-  if sys_error(stat) then return;
-  if resp then begin                   {a response was received from the chip ?}
-    getid_16b (id, stat);              {try to read the chip ID}
+  if config (picprg_reset_16f153xx_k, 3.3, 0.0) then begin {try 18B key sequence}
+    if idspace_18b (idspace, id, stat) then goto leave;
     if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_16b_k; {indicate PIC16B ID namespace}
-      goto leave;
-      end;
     end;
-done_16f153xx:
+
+  if config (picprg_reset_24h_k, 3.3, 0.0) then begin {try dsPIC 24H and 33F}
+    if idspace_30 (idspace, id, 16#784, 16#032, stat) then goto leave;
+    if sys_error(stat) then return;
+    end;
+
+  if config (picprg_reset_33ep_k, 3.3, 0.0) then begin {try dsPIC 24EP and 33EP}
+    if idspace_30 (idspace, id, 16#F88, 16#054, stat) then goto leave;
+    if sys_error(stat) then return;
+    end;
 {
-*   Check for PICs with Vdd of 3.3V and Vpp of 8.5V.
+*   No known low voltage programming entry method worked, so now try high
+*   voltage.  That means Vpp is raised to some level above Vdd to enter
+*   programming mode.  Lower Vpp voltages are tried first.
 }
-
-(*
-  config (picprg_reset_62x_k, 3.3, 8.5, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_16f72x; {this PIC type not supported by programmer}
-  check_16 (resp, stat);               {check for response to PIC16 prog commands}
-  if sys_error(stat) then return;
-  if resp then begin                   {a response was received from the chip ?}
-    getid_16 (id, stat);               {try to read the chip ID}
+  if config (picprg_reset_62x_k, 3.3, 8.5) then begin {try 16B HV entry}
+    if idspace_16b (idspace, id, stat) then goto leave;
     if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_16_k;  {indicate PIC16 ID namespace}
-      goto leave;
-      end;
     end;
-*)
-done_16f72x:
 
-  config (picprg_reset_62x_k, 3.3, 8.5, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_16fb; {this PIC type not supported by programmer}
-  check_16b (resp, stat);              {check for response to readback command}
-  if sys_error(stat) then return;
-  if resp then begin                   {a response was received from the chip ?}
-    getid_16b (id, stat);              {try to read the chip ID}
+  if config (picprg_reset_62x_k, 3.3, 8.5) then begin {try 18B HV entry}
+    if idspace_18b (idspace, id, stat) then goto leave;
     if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_16b_k; {indicate PIC16 ID namespace}
-      goto leave;
-      end;
     end;
-done_16fb:
 
-  config (picprg_reset_62x_k, 3.3, 8.5, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_18b; {this PIC type not supported by programmer}
-  check_18b (resp, stat);              {check for response to readback command}
-  if sys_error(stat) then return;
-  if resp then begin                   {a response was received from the chip ?}
-    getid_18b (id, stat);              {try to read the chip ID}
+  if config (picprg_reset_18f_k, 3.3, 8.5) then begin {try PIC 18, Vdd before Vpp}
+    if idspace_18 (idspace, id, stat) then goto leave;
     if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_18b_k; {indicate PIC18 with 8 bit commands ID namespace}
-      goto leave;
-      end;
     end;
-done_18b:
-
-  config (picprg_reset_18f_k, 3.3, 8.5, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_18lv; {this PIC type not supported by programmer}
-  check_18 (resp, stat);               {check for response from PIC18 prog commands}
-  if sys_error(stat) then return;
-  if resp then begin                   {the proper response was received ?}
-    getid_18 (id, stat);               {get the chip ID using PIC18 method}
-    if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_18_k;  {indicate PIC18 ID namespace}
-      end;
-    goto leave;                        {return with the ID}
-    end;
-done_18lv:
 {
-*   Check for PICs with Vdd limited to 5.0V and Vpp to 11V.
+*   Check for PICs with Vdd limited to 5.0 V and Vpp to 11 V.
 }
-  config (picprg_reset_18f_k, 5.0, 11.0, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_18k; {this PIC type not supported by programmer}
-  check_18 (resp, stat);               {check for response from PIC18 prog commands}
-  if sys_error(stat) then return;
-  if resp then begin                   {the proper response was received ?}
-    getid_18 (id, stat);               {get the chip ID using PIC18 method}
+  if config (picprg_reset_18f_k, 5.0, 11.0) then begin {try PIC 18, Vdd before Vpp}
+    if idspace_18 (idspace, id, stat) then goto leave;
     if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_18_k;  {indicate PIC18 ID namespace}
-      end;
-    goto leave;                        {return with the ID}
     end;
-done_18k:
 {
 *   Look for PIC 16 that uses the Vpp before Vdd program mode entry method, 5V
 *   Vdd, and 13V Vpp.
 }
-  config (picprg_reset_62x_k, 5.0, 13.0, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_62x; {these PICs not supported by this programmer ?}
-  check_16 (resp, stat);               {check for response to PIC16 prog commands}
-  if sys_error(stat) then return;
-  if resp then begin                   {a response was received from the chip ?}
-    getid_16 (id, stat);               {try to read the chip ID}
+  if config (picprg_reset_62x_k, 5.0, 13.0) then begin {try PIC 16, Vpp before Vdd}
+    if idspace_16 (idspace, id, stat) then goto leave;
     if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_16_k;  {indicate PIC16 ID namespace}
-      goto leave;
-      end;
     end;
-done_62x:
 {
 *   Look for PICs with Vdd before Vpp program mode entry, 5V Vdd, 13V Vpp.  This
 *   includes many PIC 16 and PIC 18.
 }
-  config (picprg_reset_18f_k, 5.0, 13.0, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_16f18f; {these PICs not supported by this programmer ?}
-
-  check_16 (resp, stat);               {check for response to PIC16 prog commands}
-  if sys_error(stat) then return;
-  if resp then begin                   {a response was received from the chip ?}
-    getid_16 (id, stat);               {try to read the chip ID}
+  if config (picprg_reset_18f_k, 5.0, 13.0) then begin
+    if idspace_16 (idspace, id, stat) then goto leave; {try generic PIC 16}
     if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_16_k;  {indicate PIC16 ID namespace}
-      end;
-    goto leave;                        {return with the ID}
+
+    if idspace_18 (idspace, id, stat) then goto leave; {try generic PIC 18}
+    if sys_error(stat) then return;
     end;
 
-  check_18 (resp, stat);               {check for response to PIC18 prog commands}
-  if sys_error(stat) then return;
-  if resp then begin                   {the proper response was received ?}
-    getid_18 (id, stat);               {get the chip ID using PIC18 method}
+  if config (picprg_reset_30f_k, 5.0, 13.0) then begin
+    if idspace_30 (idspace, id, 16#784, 16#032, stat) {try original dsPIC 30}
+      then goto leave;
     if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_18_k;  {indicate PIC18 ID namespace}
-      end;
-    goto leave;                        {return with the ID}
     end;
 
-done_16f18f:
-{
-*   Try PIC30 programming commands.
-}
-  config (picprg_reset_30f_k, 5.0, 13.0, stat); {select reset method and voltages}
-  if sys_error(stat) then goto done_30f; {these PICs not supported by this programmer ?}
-
-  check_30 (resp, stat);               {check for response to PIC30 prog commands}
-  if sys_error(stat) then return;
-  if resp then begin                   {the proper response was received ?}
-    getid_30 (id, 16#784, 16#032, stat); {get the chip ID using PIC30 method}
-    if sys_error(stat) then return;
-    if id <> 0 then begin              {got the ID ?}
-      idspace := picprg_idspace_30_k;  {indicate PIC30 ID namespace}
-      end;
-    goto leave;                        {return with the ID}
-    end;
-
-done_30f:
   goto leave;                          {couldn't find PIC ID}
 {
 ********************
@@ -968,6 +1060,7 @@ otherwise
 wrongpic:                              {not the expected target chip}
   sys_stat_set (picprg_subsys_k, picprg_stat_wrongpic_k, stat);
   sys_stat_parm_vstr (id_p^.name_p^.name, stat);
+  picprg_cmdw_off (pr, stat2);         {turn off power to the target chip}
   return;
 {
 ********************

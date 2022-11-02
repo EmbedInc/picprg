@@ -159,8 +159,6 @@ type
     picprg_reset_18k80_k = 11,         {Vdd on, Vpp on, "MCHP" LSB to MSB}
     picprg_reset_33ep_k = 12,          {24EP and 33EP parts}
     picprg_reset_16f153xx_k = 13);     {Vdd on, Vpp off, "MCHP" MSB to LSB}
-
-
   picprg_reset_t = set of bitsize 32 eletype picprg_reset_k_t;
 
   picprg_write_k_t = (                 {IDs for the possible write algorithms}
