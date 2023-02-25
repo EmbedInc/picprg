@@ -477,122 +477,122 @@ begin
         (prev_p <> nil) and then       {previous PIC exists ?}
         string_equal (pic.name_p^.name, prev_p^.name_p^.name) {name matches previous}
         then begin
-      string_vstring (diffs, 'IDSPACE', 80);
+      string_vstring (diffs, 'IDSPACE'(0), -1);
       if pic.idspace <> prev_p^.idspace
         then goto dupdiff;
-      string_vstring (diffs, 'MASK', 80);
+      string_vstring (diffs, 'MASK'(0), -1);
       if pic.mask <> prev_p^.mask
         then goto dupdiff;
-      string_vstring (diffs, 'ID', 80);
+      string_vstring (diffs, 'ID'(0), -1);
       if pic.id <> prev_p^.id
         then goto dupdiff;
-      string_vstring (diffs, 'VDD LOW', 80);
+      string_vstring (diffs, 'VDD LOW'(0), -1);
       if pic.vdd.low <> prev_p^.vdd.low
         then goto dupdiff;
-      string_vstring (diffs, 'VDD NORM', 80);
+      string_vstring (diffs, 'VDD NORM'(0), -1);
       if pic.vdd.norm <> prev_p^.vdd.norm
         then goto dupdiff;
-      string_vstring (diffs, 'VDD HIGH', 80);
+      string_vstring (diffs, 'VDD HIGH'(0), -1);
       if pic.vdd.high <> prev_p^.vdd.high
         then goto dupdiff;
-      string_vstring (diffs, 'VPP MIN', 80);
+      string_vstring (diffs, 'VPP MIN'(0), -1);
       if pic.vppmin <> prev_p^.vppmin
         then goto dupdiff;
-      string_vstring (diffs, 'VPP MAX', 80);
+      string_vstring (diffs, 'VPP MAX'(0), -1);
       if pic.vppmax <> prev_p^.vppmax
         then goto dupdiff;
-      string_vstring (diffs, 'REV MASK', 80);
+      string_vstring (diffs, 'REV MASK'(0), -1);
       if pic.rev_mask <> prev_p^.rev_mask
         then goto dupdiff;
-      string_vstring (diffs, 'REV SHIFT', 80);
+      string_vstring (diffs, 'REV SHIFT'(0), -1);
       if pic.rev_shft <> prev_p^.rev_shft
         then goto dupdiff;
-      string_vstring (diffs, 'WBUF SIZE', 80);
+      string_vstring (diffs, 'WBUF SIZE'(0), -1);
       if pic.wbufsz <> prev_p^.wbufsz
         then goto dupdiff;
-      string_vstring (diffs, 'WBUF START', 80);
+      string_vstring (diffs, 'WBUF START'(0), -1);
       if pic.wbstrt <> prev_p^.wbstrt
         then goto dupdiff;
-      string_vstring (diffs, 'WBUF REGION LEN', 80);
+      string_vstring (diffs, 'WBUF REGION LEN'(0), -1);
       if pic.wblen <> prev_p^.wblen
         then goto dupdiff;
-      string_vstring (diffs, 'PINS', 80);
+      string_vstring (diffs, 'PINS'(0), -1);
       if pic.pins <> prev_p^.pins
         then goto dupdiff;
-      string_vstring (diffs, 'NPROG', 80);
+      string_vstring (diffs, 'NPROG'(0), -1);
       if pic.nprog <> prev_p^.nprog
         then goto dupdiff;
-      string_vstring (diffs, 'NDAT', 80);
+      string_vstring (diffs, 'NDAT'(0), -1);
       if pic.ndat <> prev_p^.ndat
         then goto dupdiff;
-      string_vstring (diffs, 'ADRRES', 80);
+      string_vstring (diffs, 'ADRRES'(0), -1);
       if pic.adrres <> prev_p^.adrres
         then goto dupdiff;
-      string_vstring (diffs, 'MASK PRG E', 80);
+      string_vstring (diffs, 'MASK PRG E'(0), -1);
       if pic.maskprg.maske <> prev_p^.maskprg.maske
         then goto dupdiff;
-      string_vstring (diffs, 'MASK PRG O', 80);
+      string_vstring (diffs, 'MASK PRG O'(0), -1);
       if pic.maskprg.masko <> prev_p^.maskprg.masko
         then goto dupdiff;
-      string_vstring (diffs, 'MASK DAT E', 80);
+      string_vstring (diffs, 'MASK DAT E'(0), -1);
       if pic.maskdat.maske <> prev_p^.maskdat.maske
         then goto dupdiff;
-      string_vstring (diffs, 'MASK DAT O', 80);
+      string_vstring (diffs, 'MASK DAT O'(0), -1);
       if pic.maskdat.masko <> prev_p^.maskdat.masko
         then goto dupdiff;
-      string_vstring (diffs, 'DATMAP', 80);
+      string_vstring (diffs, 'DATMAP'(0), -1);
       if pic.datmap <> prev_p^.datmap
         then goto dupdiff;
-      string_vstring (diffs, 'TPROGP', 80);
+      string_vstring (diffs, 'TPROGP'(0), -1);
       if pic.tprogp <> prev_p^.tprogp
         then goto dupdiff;
-      string_vstring (diffs, 'TPROGD', 80);
+      string_vstring (diffs, 'TPROGD'(0), -1);
       if pic.tprogd <> prev_p^.tprogd
         then goto dupdiff;
-      string_vstring (diffs, 'FAM', 80);
+      string_vstring (diffs, 'FAM'(0), -1);
       if pic.fam <> prev_p^.fam
         then goto dupdiff;
-      string_vstring (diffs, 'EECON1', 80);
+      string_vstring (diffs, 'EECON1'(0), -1);
       if pic.eecon1 <> prev_p^.eecon1
         then goto dupdiff;
-      string_vstring (diffs, 'EEADR', 80);
+      string_vstring (diffs, 'EEADR'(0), -1);
       if pic.eeadr <> prev_p^.eeadr
         then goto dupdiff;
-      string_vstring (diffs, 'EEADRH', 80);
+      string_vstring (diffs, 'EEADRH'(0), -1);
       if pic.eeadrh <> prev_p^.eeadrh
         then goto dupdiff;
-      string_vstring (diffs, 'EEDATA', 80);
+      string_vstring (diffs, 'EEDATA'(0), -1);
       if pic.eedata <> prev_p^.eedata
         then goto dupdiff;
-      string_vstring (diffs, 'VISI', 80);
+      string_vstring (diffs, 'VISI'(0), -1);
       if pic.visi <> prev_p^.visi
         then goto dupdiff;
-      string_vstring (diffs, 'TBLPAG', 80);
+      string_vstring (diffs, 'TBLPAG'(0), -1);
       if pic.tblpag <> prev_p^.tblpag
         then goto dupdiff;
-      string_vstring (diffs, 'NVMCON', 80);
+      string_vstring (diffs, 'NVMCON'(0), -1);
       if pic.nvmcon <> prev_p^.nvmcon
         then goto dupdiff;
-      string_vstring (diffs, 'NVMKEY', 80);
+      string_vstring (diffs, 'NVMKEY'(0), -1);
       if pic.nvmkey <> prev_p^.nvmkey
         then goto dupdiff;
-      string_vstring (diffs, 'NVMADR', 80);
+      string_vstring (diffs, 'NVMADR'(0), -1);
       if pic.nvmadr <> prev_p^.nvmadr
         then goto dupdiff;
-      string_vstring (diffs, 'NVMADRU', 80);
+      string_vstring (diffs, 'NVMADRU'(0), -1);
       if pic.nvmadru <> prev_p^.nvmadru
         then goto dupdiff;
-      string_vstring (diffs, 'HDOUBLE', 80);
+      string_vstring (diffs, 'HDOUBLE'(0), -1);
       if pic.hdouble <> prev_p^.hdouble
         then goto dupdiff;
-      string_vstring (diffs, 'EEDOUBLE', 80);
+      string_vstring (diffs, 'EEDOUBLE'(0), -1);
       if pic.eedouble <> prev_p^.eedouble
         then goto dupdiff;
-      string_vstring (diffs, 'ADRRESKN', 80);
+      string_vstring (diffs, 'ADRRESKN'(0), -1);
       if pic.adrreskn <> prev_p^.adrreskn
         then goto dupdiff;
 
-      string_vstring (diffs, 'NAMES', 80);
+      string_vstring (diffs, 'NAMES'(0), -1);
       idname_p := prev_p^.name_p;
       idname2_p := pic.name_p;
       while true do begin              {compare names lists}
@@ -609,7 +609,7 @@ begin
         if idname2_p = nil then goto dupdiff;
         end;
 
-      string_vstring (diffs, 'CONFIG', 80);
+      string_vstring (diffs, 'CONFIG'(0), -1);
       adr_p := prev_p^.config_p;
       adr2_p := pic.config_p;
       while true do begin              {compare config addresses list}
@@ -644,7 +644,7 @@ begin
         adr2_p := adr2_p^.next_p;
         end;
 
-      string_vstring (diffs, 'OTHER', 80);
+      string_vstring (diffs, 'OTHER'(0), -1);
       adr_p := prev_p^.other_p;
       adr2_p := pic.other_p;
       while true do begin              {compare config addresses list}
