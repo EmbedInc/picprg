@@ -1,6 +1,6 @@
-%include '(cog)lib/sys.ins.pas';
-%include '(cog)lib/util.ins.pas';
-%include '(cog)lib/string.ins.pas';
-%include '(cog)lib/file.ins.pas';
-%include '(cog)lib/stuff.ins.pas';
-%include '(cog)lib/picprg.ins.pas';
+%include 'sys.ins.pas';
+%include 'util.ins.pas';
+%include 'string.ins.pas';
+%include 'file.ins.pas';
+%include 'stuff.ins.pas';
+%include 'picprg.ins.pas';
